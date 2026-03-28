@@ -511,12 +511,21 @@ export default function DashboardPage() {
               <p className="text-gray-400 text-sm text-center py-8">Nenhum dado disponivel</p>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={porRede} margin={{ top: 8, right: 12, left: -12, bottom: 8 }}>
+                <BarChart
+                  data={porRede}
+                  layout="vertical"
+                  margin={{ top: 8, right: 24, left: 24, bottom: 8 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="rede" tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <YAxis
+                    type="category"
+                    dataKey="rede"
+                    width={120}
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                  />
                   <Tooltip formatter={(value) => [value, 'Familias']} />
-                  <Bar dataKey="count" radius={[10, 10, 0, 0]}>
+                  <Bar dataKey="count" radius={[0, 10, 10, 0]}>
                     {porRede.map((entry) => (
                       <Cell key={entry.rede} fill={entry.color} />
                     ))}

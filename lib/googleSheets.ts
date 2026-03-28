@@ -105,6 +105,37 @@ function serializeList(values: string[]) {
   return values.join('|');
 }
 
+function isIsoDate(value: string) {
+  return /^\d{4}-\d{2}-\d{2}T/.test(value.trim());
+}
+
+function isEmail(value: string) {
+  return /.+@.+\..+/.test(value.trim());
+}
+
+function parseDisplayDateToIso(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const match = trimmed.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,\s*|\s+)(\d{1,2}):(\d{2})(?::(\d{2}))?$/
+  );
+
+  if (!match) return '';
+
+  const [, day, month, year, hours, minutes, seconds = '00'] = match;
+  const utcDate = new Date(Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hours) + 3,
+    Number(minutes),
+    Number(seconds)
+  ));
+
+  return Number.isNaN(utcDate.getTime()) ? '' : utcDate.toISOString();
+}
+
 function normalizePriority(rawScore: string, rawLabel: string, rawReasons: string, input: CadastroInput): PriorityResult {
   const fallback = calculatePriority(input);
   const score = parseNumber(rawScore);
@@ -120,9 +151,59 @@ function normalizePriority(rawScore: string, rawLabel: string, rawReasons: strin
   };
 }
 
-function mapRow(row: string[], headerIndex: Record<string, number>): CadastroRow {
+function mapLegacyRow(row: string[]): CadastroRow {
   const input: CadastroInput = {
-    email: getCell(row, headerIndex, 'email'),
+    email: row[2] ?? '',
+    rede: row[3] ?? '',
+    celula: row[4] ?? '',
+    lider: row[5] ?? '',
+    telefone_lider: row[6] ?? '',
+    supervisor: row[7] ?? '',
+    telefone_supervisor: row[8] ?? '',
+    familia: row[9] ?? '',
+    telefone: row[10] ?? '',
+    total_pessoas: parseNumber(row[11] ?? ''),
+    adultos: parseNumber(row[12] ?? ''),
+    criancas: parseNumber(row[13] ?? ''),
+    adolescentes: parseNumber(row[14] ?? ''),
+    idosos: parseNumber(row[15] ?? ''),
+    trabalham: parseNumber(row[16] ?? ''),
+    tipo_renda: row[17] ?? '',
+    faixa_renda: row[18] ?? '',
+    problemas: row[19] ? String(row[19]).split(',').map((item) => item.trim()).filter(Boolean) : [],
+    observacao: row[20] ?? '',
+  };
+
+  const priority = calculatePriority(input);
+  const data = row[1] ?? '';
+  const dataIso = parseDisplayDateToIso(data);
+
+  return {
+    id: row[0] ?? '',
+    data,
+    data_iso: dataIso,
+    ...input,
+    prioridade_score: priority.score,
+    prioridade_label: priority.label,
+    prioridade_motivos: priority.reasons,
+    status: 'novo',
+    observacoes_internas: '',
+    atualizado_em: '',
+    atualizado_em_iso: '',
+  };
+}
+
+function mapRow(row: string[], headerIndex: Record<string, number>): CadastroRow {
+  const dataValue = getCell(row, headerIndex, 'data');
+  const dataIsoValue = getCell(row, headerIndex, 'data_iso');
+  const emailValue = getCell(row, headerIndex, 'email');
+
+  if (!isIsoDate(dataIsoValue) && isEmail(dataIsoValue) && !isEmail(emailValue)) {
+    return mapLegacyRow(row);
+  }
+
+  const input: CadastroInput = {
+    email: emailValue,
     lider: getCell(row, headerIndex, 'lider'),
     telefone_lider: getCell(row, headerIndex, 'telefone_lider'),
     supervisor: getCell(row, headerIndex, 'supervisor'),
@@ -152,8 +233,8 @@ function mapRow(row: string[], headerIndex: Record<string, number>): CadastroRow
 
   return {
     id: getCell(row, headerIndex, 'id'),
-    data: getCell(row, headerIndex, 'data'),
-    data_iso: getCell(row, headerIndex, 'data_iso'),
+    data: dataValue,
+    data_iso: dataIsoValue || parseDisplayDateToIso(dataValue),
     ...input,
     prioridade_score: priority.score,
     prioridade_label: priority.label,

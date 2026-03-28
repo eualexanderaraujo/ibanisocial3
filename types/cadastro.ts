@@ -31,6 +31,7 @@ export interface PriorityResult {
 
 export interface CadastroRow extends CadastroInput {
   id: string;
+  protocolo: string;
   data: string;
   data_iso: string;
   prioridade_score: number;

@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
     const id = uuidv4().slice(0, 8).toUpperCase();
     const row = await appendRow(id, parsed.data);
 
-    return NextResponse.json({ success: true, id: row.id, prioridade: row.prioridade_label }, { status: 201 });
+    return NextResponse.json(
+      { success: true, id: row.id, protocolo: row.protocolo, prioridade: row.prioridade_label },
+      { status: 201 }
+    );
   } catch (err) {
     console.error('[POST /api/cadastro]', err);
     return NextResponse.json({ error: 'Erro ao gravar os dados' }, { status: 500 });

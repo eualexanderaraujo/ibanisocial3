@@ -36,7 +36,7 @@ const STEP_FIELDS: (keyof CadastroFormData)[][] = [
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 interface SubmissionResult {
-  id: string;
+  protocolo: string;
   prioridade: string;
 }
 
@@ -116,7 +116,7 @@ export default function CadastroPage() {
       }
 
       setSubmissionResult({
-        id: payload.id ?? '',
+        protocolo: payload.protocolo ?? payload.id ?? '',
         prioridade: payload.prioridade ?? 'Em analise',
       });
       setStatus('success');
@@ -128,15 +128,16 @@ export default function CadastroPage() {
 
   if (status === 'success' && submissionResult) {
     return (
-      <div className="flex-1 bg-gray-50 flex items-center justify-center px-4 py-8">
-        <div className="bg-white rounded-3xl shadow-xl p-10 max-w-md w-full text-center animate-in fade-in slide-in-from-bottom-4">
+      <div className="flex-1 bg-gray-50 flex items-start sm:items-center justify-center px-4 py-4 sm:py-8">
+        <div className="w-full max-w-md mx-auto pt-4 sm:pt-0">
+          <div className="bg-white rounded-3xl shadow-xl p-8 sm:p-10 w-full text-center animate-in fade-in slide-in-from-bottom-4">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Cadastro enviado</h2>
           <p className="text-gray-500 mb-6">
             Seu pedido foi registrado com sucesso. Guarde o protocolo abaixo para acompanhamento interno.
           </p>
           <div className="rounded-2xl border border-brand-100 bg-brand-50 px-5 py-4 text-left mb-6">
             <p className="text-xs uppercase tracking-[0.2em] text-brand-700 mb-1">Protocolo</p>
-            <p className="text-2xl font-extrabold text-brand-800">{submissionResult.id}</p>
+            <p className="text-2xl font-extrabold text-brand-800">{submissionResult.protocolo}</p>
             <p className="text-sm text-brand-700 mt-3">
               Prioridade inicial: <span className="font-semibold">{submissionResult.prioridade}</span>
             </p>
@@ -156,6 +157,7 @@ export default function CadastroPage() {
               Voltar ao inicio
             </Link>
           </div>
+        </div>
         </div>
       </div>
     );

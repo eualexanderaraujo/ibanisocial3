@@ -86,12 +86,12 @@ function formatDateTime(value: string) {
 
 function buildCsv(rows: CadastroRow[]) {
   const headers = [
+    'protocolo',
     'id',
     'data',
     'rede',
     'celula',
     'familia',
-    'telefone',
     'total_pessoas',
     'criancas',
     'idosos',
@@ -105,12 +105,12 @@ function buildCsv(rows: CadastroRow[]) {
   const escapeValue = (value: string | number) => `"${String(value ?? '').replace(/"/g, '""')}"`;
   const lines = rows.map((row) =>
     [
+      row.protocolo,
       row.id,
       row.data,
       row.rede,
       row.celula,
       row.familia,
-      row.telefone,
       row.total_pessoas,
       row.criancas,
       row.idosos,
@@ -619,15 +619,15 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
             <div>
-              <h2 className="font-bold text-gray-800">Casos filtrados</h2>
-              <p className="text-sm text-gray-500">{filteredRows.length} caso(s) encontrado(s)</p>
+              <h2 className="font-bold text-gray-800">Entregas por Pedido</h2>
+              <p className="text-sm text-gray-500">{filteredRows.length} pedido(s) encontrado(s)</p>
             </div>
           </div>
           {filteredRows.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-10">Nenhum cadastro encontrado para os filtros selecionados.</p>
+            <p className="text-gray-400 text-sm text-center py-10">Nenhum pedido encontrado para os filtros selecionados.</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {filteredRows.map((row) => {
@@ -640,7 +640,7 @@ export default function DashboardPage() {
                     <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3 mb-3">
-                          <p className="font-mono text-xs font-bold text-brand-700">{row.id}</p>
+                          <p className="font-mono text-xs font-bold text-brand-700">{row.protocolo}</p>
                           <span
                             className="px-3 py-1 rounded-full text-xs font-semibold"
                             style={{ color: redeColor, backgroundColor: toRgba(redeColor, 0.14) }}
@@ -663,7 +663,8 @@ export default function DashboardPage() {
                             {CASE_STATUS_LABELS[currentStatus]}
                           </span>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">{row.familia}</h3>
+                        <h3 className="text-lg font-bold text-gray-900">{row.familia || 'Familia nao informada'}</h3>
+                        <p className="text-sm font-mono text-brand-700 mt-1">Protocolo: {row.protocolo}</p>
                         <p className="text-sm text-gray-500 mt-1">
                           {row.celula} | {row.total_pessoas} pessoa(s) | {row.faixa_renda}
                         </p>
@@ -711,7 +712,7 @@ export default function DashboardPage() {
               })}
             </div>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

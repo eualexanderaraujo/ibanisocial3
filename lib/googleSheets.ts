@@ -33,6 +33,7 @@ const HEADERS = [
   'observacoes_internas',
   'atualizado_em',
   'atualizado_em_iso',
+  'protocolo',
 ] as const;
 
 function getRequiredEnv(name: string) {
@@ -150,16 +151,16 @@ function mapLegacyRow(row: string[]): CadastroRow {
     telefone_supervisor: row[8] ?? '',
     familia: row[9] ?? '',
     telefone: row[10] ?? '',
-    total_pessoas: parseNumber(row[11] ?? ''),
-    adultos: parseNumber(row[12] ?? ''),
-    criancas: parseNumber(row[13] ?? ''),
-    adolescentes: parseNumber(row[14] ?? ''),
-    idosos: parseNumber(row[15] ?? ''),
-    trabalham: parseNumber(row[16] ?? ''),
-    tipo_renda: row[17] ?? '',
-    faixa_renda: row[18] ?? '',
-    problemas: row[19] ? String(row[19]).split(',').map((item) => item.trim()).filter(Boolean) : [],
-    observacao: row[20] ?? '',
+    total_pessoas: parseNumber(row[12] ?? ''),
+    adultos: parseNumber(row[13] ?? ''),
+    criancas: parseNumber(row[14] ?? ''),
+    adolescentes: parseNumber(row[15] ?? ''),
+    idosos: parseNumber(row[16] ?? ''),
+    trabalham: parseNumber(row[17] ?? ''),
+    tipo_renda: row[18] ?? '',
+    faixa_renda: row[19] ?? '',
+    problemas: row[20] ? String(row[20]).split(',').map((item) => item.trim()).filter(Boolean) : [],
+    observacao: '',
   };
 
   const priority = calculatePriority(input);
@@ -168,6 +169,7 @@ function mapLegacyRow(row: string[]): CadastroRow {
 
   return {
     id: row[0] ?? '',
+    protocolo: row[0] ?? '',
     data,
     data_iso: dataIso,
     ...input,
@@ -208,6 +210,7 @@ function mapCurrentRow(row: string[]): CadastroRow {
 
   return {
     id: row[0] ?? '',
+    protocolo: row[29] ?? row[0] ?? '',
     data: row[1] ?? '',
     data_iso: row[2] ?? parseDisplayDateToIso(row[1] ?? ''),
     ...input,
@@ -236,7 +239,7 @@ async function getSheetValues() {
   const spreadsheetId = getSpreadsheetId();
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:AC`,
+    range: `${SHEET_NAME}!A:AD`,
   });
 
   return {
@@ -273,6 +276,7 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
 
   const row: CadastroRow = {
     id,
+    protocolo: id,
     data: timestamp.display,
     data_iso: timestamp.iso,
     ...data,
@@ -287,7 +291,7 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:AC`,
+    range: `${SHEET_NAME}!A:AD`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[
@@ -320,6 +324,7 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
         row.observacoes_internas,
         row.atualizado_em,
         row.atualizado_em_iso,
+        row.protocolo,
       ]],
     },
   });
@@ -369,7 +374,7 @@ export async function updateCaseRow(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${SHEET_NAME}!A${absoluteRowIndex}:AC${absoluteRowIndex}`,
+    range: `${SHEET_NAME}!A${absoluteRowIndex}:AD${absoluteRowIndex}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[
@@ -402,6 +407,7 @@ export async function updateCaseRow(
         nextRow.observacoes_internas,
         nextRow.atualizado_em,
         nextRow.atualizado_em_iso,
+        nextRow.protocolo,
       ]],
     },
   });

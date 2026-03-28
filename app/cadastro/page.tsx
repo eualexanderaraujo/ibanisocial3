@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
@@ -59,6 +59,7 @@ export default function CadastroPage() {
     trigger,
     control,
     watch,
+    setValue,
     reset,
     formState: { errors },
   } = useForm<CadastroFormData>({
@@ -78,6 +79,10 @@ export default function CadastroPage() {
     Number(criancas || 0) +
     Number(adolescentes || 0) +
     Number(idosos || 0);
+
+  useEffect(() => {
+    setValue('total_pessoas', totalPessoasCalculado, { shouldValidate: true });
+  }, [setValue, totalPessoasCalculado]);
 
   const nextStep = async () => {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -285,13 +290,12 @@ export default function CadastroPage() {
                     {...register('idosos', { setValueAs: (value) => (value === '' ? 0 : Number(value)) })}
                   />
                 </div>
-                <input type="hidden" value={totalPessoasCalculado} {...register('total_pessoas', { valueAsNumber: true })} />
+                <input type="hidden" {...register('total_pessoas', { valueAsNumber: true })} />
                 <InputField
                   label="Total de pessoas"
                   type="number"
                   value={totalPessoasCalculado}
                   readOnly
-                  disabled
                   error={errors.total_pessoas?.message}
                 />
                 <p className="text-xs text-gray-500">

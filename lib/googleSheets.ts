@@ -76,18 +76,6 @@ function getTimestampParts(reference = new Date()) {
   };
 }
 
-function buildHeaderIndex(headers: string[]) {
-  return headers.reduce<Record<string, number>>((acc, header, index) => {
-    acc[header] = index;
-    return acc;
-  }, {});
-}
-
-function getCell(row: string[], headerIndex: Record<string, number>, key: string) {
-  const index = headerIndex[key];
-  return index === undefined ? '' : row[index] ?? '';
-}
-
 function parseNumber(value: string) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -193,57 +181,54 @@ function mapLegacyRow(row: string[]): CadastroRow {
   };
 }
 
-function mapRow(row: string[], headerIndex: Record<string, number>): CadastroRow {
-  const dataValue = getCell(row, headerIndex, 'data');
-  const dataIsoValue = getCell(row, headerIndex, 'data_iso');
-  const emailValue = getCell(row, headerIndex, 'email');
-
-  if (!isIsoDate(dataIsoValue) && isEmail(dataIsoValue) && !isEmail(emailValue)) {
-    return mapLegacyRow(row);
-  }
-
+function mapCurrentRow(row: string[]): CadastroRow {
   const input: CadastroInput = {
-    email: emailValue,
-    lider: getCell(row, headerIndex, 'lider'),
-    telefone_lider: getCell(row, headerIndex, 'telefone_lider'),
-    supervisor: getCell(row, headerIndex, 'supervisor'),
-    telefone_supervisor: getCell(row, headerIndex, 'telefone_supervisor'),
-    rede: getCell(row, headerIndex, 'rede'),
-    celula: getCell(row, headerIndex, 'celula'),
-    familia: getCell(row, headerIndex, 'familia'),
-    telefone: getCell(row, headerIndex, 'telefone'),
-    total_pessoas: parseNumber(getCell(row, headerIndex, 'total_pessoas')),
-    adultos: parseNumber(getCell(row, headerIndex, 'adultos')),
-    criancas: parseNumber(getCell(row, headerIndex, 'criancas')),
-    adolescentes: parseNumber(getCell(row, headerIndex, 'adolescentes')),
-    idosos: parseNumber(getCell(row, headerIndex, 'idosos')),
-    trabalham: parseNumber(getCell(row, headerIndex, 'trabalham')),
-    tipo_renda: getCell(row, headerIndex, 'tipo_renda'),
-    faixa_renda: getCell(row, headerIndex, 'faixa_renda'),
-    problemas: parseList(getCell(row, headerIndex, 'problemas')),
-    observacao: getCell(row, headerIndex, 'observacao'),
+    email: row[3] ?? '',
+    rede: row[4] ?? '',
+    celula: row[5] ?? '',
+    lider: row[6] ?? '',
+    telefone_lider: row[7] ?? '',
+    supervisor: row[8] ?? '',
+    telefone_supervisor: row[9] ?? '',
+    familia: row[10] ?? '',
+    telefone: row[11] ?? '',
+    total_pessoas: parseNumber(row[12] ?? ''),
+    adultos: parseNumber(row[13] ?? ''),
+    criancas: parseNumber(row[14] ?? ''),
+    adolescentes: parseNumber(row[15] ?? ''),
+    idosos: parseNumber(row[16] ?? ''),
+    trabalham: parseNumber(row[17] ?? ''),
+    tipo_renda: row[18] ?? '',
+    faixa_renda: row[19] ?? '',
+    problemas: parseList(row[20] ?? ''),
+    observacao: row[21] ?? '',
   };
 
-  const priority = normalizePriority(
-    getCell(row, headerIndex, 'prioridade_score'),
-    getCell(row, headerIndex, 'prioridade_label'),
-    getCell(row, headerIndex, 'prioridade_motivos'),
-    input
-  );
+  const priority = normalizePriority(row[22] ?? '', row[23] ?? '', row[24] ?? '', input);
 
   return {
-    id: getCell(row, headerIndex, 'id'),
-    data: dataValue,
-    data_iso: dataIsoValue || parseDisplayDateToIso(dataValue),
+    id: row[0] ?? '',
+    data: row[1] ?? '',
+    data_iso: row[2] ?? parseDisplayDateToIso(row[1] ?? ''),
     ...input,
     prioridade_score: priority.score,
     prioridade_label: priority.label,
     prioridade_motivos: priority.reasons,
-    status: (getCell(row, headerIndex, 'status') as CaseStatus) || 'novo',
-    observacoes_internas: getCell(row, headerIndex, 'observacoes_internas'),
-    atualizado_em: getCell(row, headerIndex, 'atualizado_em'),
-    atualizado_em_iso: getCell(row, headerIndex, 'atualizado_em_iso'),
+    status: (row[25] as CaseStatus) || 'novo',
+    observacoes_internas: row[26] ?? '',
+    atualizado_em: row[27] ?? '',
+    atualizado_em_iso: row[28] ?? '',
   };
+}
+
+function mapRow(row: string[]): CadastroRow {
+  const dataIsoValue = row[2] ?? '';
+  const emailValue = row[3] ?? '';
+
+  if (!isIsoDate(dataIsoValue) && isEmail(dataIsoValue) && !isEmail(emailValue)) {
+    return mapLegacyRow(row);
+  }
+  return mapCurrentRow(row);
 }
 
 async function getSheetValues() {
@@ -347,12 +332,11 @@ export async function getRows(): Promise<CadastroRow[]> {
   const { values } = await getSheetValues();
   if (values.length <= 1) return [];
 
-  const [headers, ...dataRows] = values;
-  const headerIndex = buildHeaderIndex(headers);
+  const [, ...dataRows] = values;
 
   return dataRows
     .filter((row) => row.some((cell) => String(cell ?? '').trim() !== ''))
-    .map((row) => mapRow(row, headerIndex));
+    .map((row) => mapRow(row));
 }
 
 export async function updateCaseRow(
@@ -363,14 +347,13 @@ export async function updateCaseRow(
   const { sheets, spreadsheetId, values } = await getSheetValues();
   if (values.length <= 1) return null;
 
-  const [headers, ...dataRows] = values;
-  const headerIndex = buildHeaderIndex(headers);
-  const targetIndex = dataRows.findIndex((row) => getCell(row, headerIndex, 'id') === id);
+  const [, ...dataRows] = values;
+  const targetIndex = dataRows.findIndex((row) => (row[0] ?? '') === id);
 
   if (targetIndex === -1) return null;
 
   const absoluteRowIndex = targetIndex + 2;
-  const currentRow = mapRow(dataRows[targetIndex], headerIndex);
+  const currentRow = mapRow(dataRows[targetIndex]);
   const timestamp = getTimestampParts();
   const priority = calculatePriority(currentRow);
   const nextRow: CadastroRow = {

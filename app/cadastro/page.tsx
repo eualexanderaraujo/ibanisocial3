@@ -66,13 +66,18 @@ export default function CadastroPage() {
     defaultValues: {
       problemas: [],
       observacao: '',
-      adultos: 0,
-      criancas: 0,
-      adolescentes: 0,
-      idosos: 0,
-      trabalham: 0,
     },
   });
+
+  const adultos = watch('adultos');
+  const criancas = watch('criancas');
+  const adolescentes = watch('adolescentes');
+  const idosos = watch('idosos');
+  const totalPessoasCalculado =
+    Number(adultos || 0) +
+    Number(criancas || 0) +
+    Number(adolescentes || 0) +
+    Number(idosos || 0);
 
   const nextStep = async () => {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -246,13 +251,49 @@ export default function CadastroPage() {
 
             {step === 4 && (
               <FormSection title="Composicao familiar" icon="5">
-                <InputField label="Total de pessoas" type="number" min={1} required error={errors.total_pessoas?.message} {...register('total_pessoas')} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <InputField label="Adultos" type="number" min={0} error={errors.adultos?.message} {...register('adultos')} />
-                  <InputField label="Criancas" type="number" min={0} error={errors.criancas?.message} {...register('criancas')} />
-                  <InputField label="Adolescentes" type="number" min={0} error={errors.adolescentes?.message} {...register('adolescentes')} />
-                  <InputField label="Idosos" type="number" min={0} error={errors.idosos?.message} {...register('idosos')} />
+                  <InputField
+                    label="Adultos"
+                    type="number"
+                    min={0}
+                    placeholder="Informe a quantidade"
+                    error={errors.adultos?.message}
+                    {...register('adultos', { setValueAs: (value) => (value === '' ? 0 : Number(value)) })}
+                  />
+                  <InputField
+                    label="Criancas"
+                    type="number"
+                    min={0}
+                    placeholder="Informe a quantidade"
+                    error={errors.criancas?.message}
+                    {...register('criancas', { setValueAs: (value) => (value === '' ? 0 : Number(value)) })}
+                  />
+                  <InputField
+                    label="Adolescentes"
+                    type="number"
+                    min={0}
+                    placeholder="Informe a quantidade"
+                    error={errors.adolescentes?.message}
+                    {...register('adolescentes', { setValueAs: (value) => (value === '' ? 0 : Number(value)) })}
+                  />
+                  <InputField
+                    label="Idosos"
+                    type="number"
+                    min={0}
+                    placeholder="Informe a quantidade"
+                    error={errors.idosos?.message}
+                    {...register('idosos', { setValueAs: (value) => (value === '' ? 0 : Number(value)) })}
+                  />
                 </div>
+                <input type="hidden" value={totalPessoasCalculado} {...register('total_pessoas', { valueAsNumber: true })} />
+                <InputField
+                  label="Total de pessoas"
+                  type="number"
+                  value={totalPessoasCalculado}
+                  readOnly
+                  disabled
+                  error={errors.total_pessoas?.message}
+                />
                 <p className="text-xs text-gray-500">
                   A soma das faixas etarias deve bater com o total de pessoas.
                 </p>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { appendRow, getRows, ensureHeaders } from '@/lib/googleSheets';
+import { requireDashboardAuth } from '@/lib/adminAuth';
+import { appendRow, getRows } from '@/lib/googleSheets';
 import { cadastroSchema } from '@/lib/schema';
 
 export async function POST(req: NextRequest) {
@@ -10,16 +11,15 @@ export async function POST(req: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Dados inválidos', details: parsed.error.flatten() },
+        { error: 'Dados invalidos', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
-    await ensureHeaders();
     const id = uuidv4().slice(0, 8).toUpperCase();
-    await appendRow(id, parsed.data);
+    const row = await appendRow(id, parsed.data);
 
-    return NextResponse.json({ success: true, id }, { status: 201 });
+    return NextResponse.json({ success: true, id: row.id, prioridade: row.prioridade_label }, { status: 201 });
   } catch (err) {
     console.error('[POST /api/cadastro]', err);
     return NextResponse.json({ error: 'Erro ao gravar os dados' }, { status: 500 });
@@ -27,6 +27,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  const unauthorized = await requireDashboardAuth();
+  if (unauthorized) return unauthorized;
+
   try {
     const rows = await getRows();
     return NextResponse.json(rows);

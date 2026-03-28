@@ -1,34 +1,89 @@
 import { NextResponse } from 'next/server';
+import { requireDashboardAuth, isDashboardAuthEnabled } from '@/lib/adminAuth';
+import { REDE_COLORS, getStatusLabel } from '@/lib/schema';
 import { getRows } from '@/lib/googleSheets';
 import { CadastroRow } from '@/types/cadastro';
 
+function getMonthKey(value: string) {
+  if (!value) return 'Sem data';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Sem data';
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+function sortByNewest(a: CadastroRow, b: CadastroRow) {
+  return new Date(b.data_iso).getTime() - new Date(a.data_iso).getTime();
+}
+
 export async function GET() {
+  const unauthorized = await requireDashboardAuth();
+  if (unauthorized) return unauthorized;
+
   try {
-    const rows: CadastroRow[] = await getRows();
+    const rows = (await getRows()).sort(sortByNewest);
 
     const totalFamilias = rows.length;
-    const totalPessoas = rows.reduce((s, r) => s + r.total_pessoas, 0);
-    const totalCriancas = rows.reduce((s, r) => s + r.criancas, 0);
-    const semRenda = rows.filter((r) => r.faixa_renda === 'Sem renda').length;
+    const totalPessoas = rows.reduce((sum, row) => sum + row.total_pessoas, 0);
+    const totalCriancas = rows.reduce((sum, row) => sum + row.criancas, 0);
+    const semRenda = rows.filter((row) => row.faixa_renda === 'Sem renda').length;
+    const criticos = rows.filter((row) => row.prioridade_label === 'Critica').length;
 
-    const porRede = rows.reduce<Record<string, number>>((acc, r) => {
-      acc[r.rede] = (acc[r.rede] ?? 0) + 1;
+    const porRedeMap = rows.reduce<Record<string, number>>((acc, row) => {
+      acc[row.rede] = (acc[row.rede] ?? 0) + 1;
       return acc;
     }, {});
 
-    const porFaixaRenda = rows.reduce<Record<string, number>>((acc, r) => {
-      acc[r.faixa_renda] = (acc[r.faixa_renda] ?? 0) + 1;
+    const porStatusMap = rows.reduce<Record<string, number>>((acc, row) => {
+      acc[row.status] = (acc[row.status] ?? 0) + 1;
       return acc;
     }, {});
+
+    const historicoMensalMap = rows.reduce<Record<string, number>>((acc, row) => {
+      const monthKey = getMonthKey(row.data_iso);
+      acc[monthKey] = (acc[monthKey] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    const porRede = Object.entries(porRedeMap)
+      .map(([rede, count]) => ({ rede, count, color: REDE_COLORS[rede] ?? REDE_COLORS.Outra }))
+      .sort((a, b) => b.count - a.count);
+
+    const porStatus = Object.entries(porStatusMap)
+      .map(([status, count]) => ({ status, label: getStatusLabel(status as CadastroRow['status']), count }))
+      .sort((a, b) => b.count - a.count);
+
+    const historicoMensal = Object.entries(historicoMensalMap).map(([periodo, total]) => ({ periodo, total }));
+
+    const urgentes = [...rows]
+      .sort((a, b) => b.prioridade_score - a.prioridade_score || sortByNewest(a, b))
+      .slice(0, 10);
 
     return NextResponse.json({
-      totalFamilias,
-      totalPessoas,
-      totalCriancas,
-      semRenda,
-      porRede: Object.entries(porRede).map(([rede, count]) => ({ rede, count })),
-      porFaixaRenda: Object.entries(porFaixaRenda).map(([faixa, count]) => ({ faixa, count })),
-      recentes: rows.slice(-10).reverse(),
+      authEnabled: isDashboardAuthEnabled(),
+      summary: {
+        totalFamilias,
+        totalPessoas,
+        totalCriancas,
+        semRenda,
+        criticos,
+      },
+      filters: {
+        redes: Array.from(new Set(rows.map((row) => row.rede))).sort(),
+        celulas: Array.from(new Set(rows.map((row) => row.celula))).sort(),
+        periodos: Array.from(new Set(rows.map((row) => getMonthKey(row.data_iso)))),
+      },
+      charts: {
+        porRede,
+        porStatus,
+        historicoMensal,
+      },
+      urgentes,
+      rows,
     });
   } catch (err) {
     console.error('[GET /api/dashboard]', err);

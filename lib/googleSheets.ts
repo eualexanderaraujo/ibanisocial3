@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { calculatePriority, getTipoCesta } from '@/lib/schema';
 import { CadastroInput, CadastroRow, CaseStatus, PriorityResult } from '@/types/cadastro';
+import { reservarEstoquePorPedido } from '@/lib/estoqueSheets';
 
 const SHEET_NAME = 'pedidos';
 const HEADERS = [
@@ -329,6 +330,9 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
       ]],
     },
   });
+
+  // Reserva o estoque automaticamente
+  await reservarEstoquePorPedido(row.tipo_cesta);
 
   return row;
 }

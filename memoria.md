@@ -17,7 +17,9 @@ Sistema de gestão social para a Igreja Batista Atitude, integrando controle de 
 
 ### 1. Estoque (`estoque`)
 - **Identificador**: `nome_produto` (O campo `id_produto` foi removido para simplificar a gestão).
-- **Colunas**: `id_estoque`, `nome_produto`, `quantidade_kg`, `data_atualizacao`, `observacao`.
+- **Colunas**: `id_estoque`, `nome_produto`, `quantidade_kg`, `quantidade_solicitada_kg`, `saldo_kg`, `data_atualizacao`, `observacao`.
+- **Cálculos**:
+    - `Saldo (kg)` = `Quantidade (kg)` - `Quantidade Solicitada (kg)`.
 - **Regra**: O sistema realiza *upsert* baseado no nome do produto.
 
 ### 2. Doações (`doacoes`)
@@ -26,12 +28,16 @@ Sistema de gestão social para a Igreja Batista Atitude, integrando controle de 
 - **Integração**: Toda doação registrada dispara automaticamente um incremento na quantidade do produto correspondente na tabela de **Estoque**.
 - **Regra**: Se o produto doado não existir no estoque, uma nova entrada é criada.
 
-### 3. Células (`celula`)
-- **Colunas**: `id_celula`, `Rede`, `NomeDaCelula`, `Lider`, `Telefone`, `Supervisor`, `TelefoneSupervisor`, `email`.
-- **Ajuste Crítico**: A Coluna B é `Rede` e a Coluna C é `NomeDaCelula`. O sistema foi corrigido para não inverter esses campos.
+### 3. Pedidos e Reservas (`pedidos`)
+- **Cestas**: O sistema diferencia entre **Cesta Adulto** e **Cesta Kids** (calculado automaticamente se houver 1 ou mais crianças).
+- **Reserva Automática**: Todo novo pedido (`appendRow` em `pedidos`) dispara a função `reservarEstoquePorPedido`.
+- **Cálculo de Reserva**:
+    - Para cada produto na tabela `produtos`, o sistema busca as colunas `Adulto (kg)` e `Kids (kg)`.
+    - A quantidade correspondente ao tipo da cesta é somada à coluna `quantidade_solicitada_kg` no estoque.
+    - O `saldo_kg` é recalculado instantaneamente.
 
 ### 4. Produtos (`produtos`)
-- Lista mestre de produtos ativos para seleção nos módulos de doação e estoque.
+- **Configuração de Cestas**: Inclui colunas para definir a composição padrão em Kg para cestas Adulto e Kids.
 
 ---
 
@@ -45,9 +51,10 @@ Sistema de gestão social para a Igreja Batista Atitude, integrando controle de 
 ---
 
 ## 📝 Histórico de Mudanças Importantes (Últimas)
+- **Sistema de Reserva de Estoque**: Implementação de `quantidade_solicitada_kg` e `saldo_kg` para controle preventivo de disponibilidade.
+- **Automação de Lote**: Pedidos agora reservam automaticamente todos os itens da cesta baseado na configuração dos produtos.
 - **Remoção de ID Técnico**: Migração de `id_produto` para `nome_produto` em todo o ecossistema (Estoque/Doações/API).
 - **Fluxo Automatizado**: Implementação da função `incrementarEstoquePorNome` para sincronizar doações e saldo de estoque.
-- **Correção de Mapeamento**: Ajuste nos índices de colunas das Células para coincidir com o layout manual da planilha.
 
 ---
 *Última atualização: 24/04/2026*

@@ -157,10 +157,10 @@ function mapLegacyRow(row: string[]): CadastroRow {
     criancas: parseNumber(row[14] ?? ''),
     adolescentes: parseNumber(row[15] ?? ''),
     idosos: parseNumber(row[16] ?? ''),
-    trabalham: parseNumber(row[17] ?? ''),
+    trabalham: row[17] ?? 'Não',
     tipo_renda: row[18] ?? '',
     faixa_renda: row[19] ?? '',
-    problemas: row[20] ? String(row[20]).split(',').map((item) => item.trim()).filter(Boolean) : [],
+    problemas: row[20] ?? '',
     observacao: '',
   };
 
@@ -200,10 +200,10 @@ function mapCurrentRow(row: string[]): CadastroRow {
     criancas: parseNumber(row[14] ?? ''),
     adolescentes: parseNumber(row[15] ?? ''),
     idosos: parseNumber(row[16] ?? ''),
-    trabalham: parseNumber(row[17] ?? ''),
+    trabalham: row[17] ?? 'Não',
     tipo_renda: row[18] ?? '',
     faixa_renda: row[19] ?? '',
-    problemas: parseList(row[20] ?? ''),
+    problemas: row[20] ?? '',
     observacao: row[21] ?? '',
   };
 
@@ -316,7 +316,7 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
         row.trabalham,
         row.tipo_renda,
         row.faixa_renda,
-        serializeList(row.problemas),
+        row.problemas,
         row.observacao,
         row.prioridade_score,
         row.prioridade_label,
@@ -402,7 +402,7 @@ export async function updateCaseRow(
         nextRow.trabalham,
         nextRow.tipo_renda,
         nextRow.faixa_renda,
-        serializeList(nextRow.problemas),
+        nextRow.problemas,
         nextRow.observacao,
         nextRow.prioridade_score,
         nextRow.prioridade_label,

@@ -16,11 +16,16 @@ Sistema de gestão social para a Igreja Batista Atitude, integrando controle de 
 ## 🏗️ Estrutura de Dados e Regras de Negócio
 
 ### 1. Estoque (`estoque`)
-- **Identificador**: `nome_produto` (O campo `id_produto` foi removido para simplificar a gestão).
-- **Colunas**: `id_estoque`, `nome_produto`, `quantidade_kg`, `quantidade_solicitada_kg`, `saldo_kg`, `data_atualizacao`, `observacao`.
-- **Cálculos**:
-    - `Saldo (kg)` = `Quantidade (kg)` - `Quantidade Solicitada (kg)`.
-- **Regra**: O sistema realiza *upsert* baseado no nome do produto.
+- **Identificador**: `nome_produto` (Chave primária de negócio).
+- **Colunas (Google Sheets)**:
+    - **A**: `id_estoque`
+    - **B**: `nome_produto`
+    - **C**: `quantidade_kg` (Físico)
+    - **D**: `quantidade_solicitada_kg` (Reservado)
+    - **E**: `saldo_kg` (Saldo Real = Físico - Reservado)
+    - **F**: `data_atualizacao`
+    - **G**: `observacao`
+- **Regra**: O sistema realiza *upsert* baseado no nome do produto. O saldo é recalculado a cada operação.
 
 ### 2. Doações (`doacoes`)
 - **Colunas**: `id_doacao`, `Rede`, `Celula`, `Produto`, `Quantidade (kg)`, `Obsercacoes`.

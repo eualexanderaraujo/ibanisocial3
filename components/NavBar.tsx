@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
   { href: '/',          label: 'Início',    icon: '🏠' },
-  { href: '/cadastro',  label: 'Pedidos',   icon: '📋' },
+  { href: '/pedidos',   label: 'Pedidos',   icon: '📋' },
   { href: '/entregas',  label: 'Saídas',    icon: '🚚' },
   { href: '/estoque',   label: 'Estoque',   icon: '📦' },
   { href: '/doacoes',   label: 'Doações',   icon: '🤝' },

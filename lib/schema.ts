@@ -61,11 +61,12 @@ export const cadastroSchema = z
     criancas: z.coerce.number().int().min(0),
     adolescentes: z.coerce.number().int().min(0),
     idosos: z.coerce.number().int().min(0),
-    trabalham: z.coerce.number().int().min(0),
-    tipo_renda: z.enum(TIPOS_RENDA, { errorMap: () => ({ message: 'Selecione o tipo de renda' }) }),
-    faixa_renda: z.enum(FAIXAS_RENDA, { errorMap: () => ({ message: 'Selecione a faixa de renda' }) }),
-    problemas: z.array(z.string()).default([]),
+    trabalham: z.string().default('Não'),
+    tipo_renda: z.string().min(1, 'Informe o tipo de renda'),
+    faixa_renda: z.string().min(1, 'Informe a faixa de renda'),
+    problemas: z.string().default(''),
     observacao: z.string().max(1000, 'Limite de 1000 caracteres').default(''),
+    tipo_cesta: z.enum(['Adulto', 'Kids']).default('Adulto'),
   })
   .superRefine((data, ctx) => {
     const somaDependentes = data.adultos + data.criancas + data.adolescentes + data.idosos;
@@ -75,14 +76,6 @@ export const cadastroSchema = z
         code: z.ZodIssueCode.custom,
         message: 'A soma de adultos, criancas, adolescentes e idosos deve ser igual ao total de pessoas.',
         path: ['total_pessoas'],
-      });
-    }
-
-    if (data.trabalham > data.total_pessoas) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'O numero de pessoas que trabalham nao pode ser maior que o total de pessoas.',
-        path: ['trabalham'],
       });
     }
 
@@ -121,7 +114,7 @@ export function calculatePriority(data: CadastroInput): PriorityResult {
     reasons.push(reason);
   };
 
-  const rendaPoints: Record<CadastroInput['faixa_renda'], number> = {
+  const rendaPoints: Record<string, number> = {
     'Sem renda': 5,
     'Ate R$600': 4,
     'Ate R$1000': 3,
@@ -129,7 +122,7 @@ export function calculatePriority(data: CadastroInput): PriorityResult {
     'Acima de R$2000': 0,
   };
 
-  const rendaReason: Record<CadastroInput['faixa_renda'], string> = {
+  const rendaReason: Record<string, string> = {
     'Sem renda': 'familia sem renda',
     'Ate R$600': 'renda muito baixa',
     'Ate R$1000': 'renda baixa',
@@ -146,24 +139,11 @@ export function calculatePriority(data: CadastroInput): PriorityResult {
   if (data.idosos >= 2) addScore(3, 'dois ou mais idosos');
   else if (data.idosos >= 1) addScore(2, 'ha idoso na familia');
 
-  if (data.trabalham === 0) addScore(2, 'nenhuma pessoa trabalhando');
+  if (data.trabalham === 'Não') addScore(2, 'nenhuma pessoa trabalhando');
 
-  const problemaScores: Partial<Record<(typeof PROBLEMAS_SOCIAIS)[number], number>> = {
-    Desemprego: 2,
-    'Doenca na familia': 2,
-    'Violencia domestica': 3,
-    'Uso de drogas': 2,
-    Dividas: 1,
-    'Falta de moradia': 4,
-    'Problemas com dependentes': 2,
-    'Crise familiar': 2,
-    Outros: 1,
-  };
-
-  data.problemas.forEach((problema) => {
-    const problemaScore = problemaScores[problema as keyof typeof problemaScores] ?? 1;
-    addScore(problemaScore, problema.toLowerCase());
-  });
+  if (data.problemas && data.problemas.length > 5) {
+    addScore(1, 'problemas sociais relatados');
+  }
 
   const label = getPriorityLabel(score);
   return { score, label, reasons };

@@ -6,7 +6,7 @@ const MENU_ITEMS = [
     title: 'Pedidos',
     description: 'Cadastro de pedidos e triagem social',
     icon: '📋',
-    href: '/cadastro',
+    href: '/pedidos',
     color: 'bg-orange-50',
     iconColor: 'text-orange-600',
   },

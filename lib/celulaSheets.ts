@@ -1,9 +1,9 @@
-import { getSheets, getSpreadsheetId, getTimestampParts } from '@/lib/googleSheets';
+import { getSheets, getSpreadsheetId } from '@/lib/googleSheets';
 import { CelulaInput, CelulaRow } from '@/types/celula';
 import { v4 as uuidv4 } from 'uuid';
 
 const SHEET_NAME = 'celula';
-const HEADERS = ['id_celula', 'nome_celula', 'rede', 'lider', 'telefone_lider', 'supervisor', 'telefone_supervisor', 'email'] as const;
+const HEADERS = ['id_celula', 'Rede', 'NomeDaCelula', 'Lider', 'Telefone', 'Supervisor', 'TelefoneSupervisor', 'email'] as const;
 
 async function getSheetValues() {
   const sheets = await getSheets();
@@ -24,14 +24,14 @@ async function ensureHeaders() {
 
 function mapRow(row: string[]): CelulaRow {
   return {
-    id_celula: row[0] ?? '',
-    nome_celula: row[1] ?? '',
-    rede: row[2] ?? '',
-    lider: row[3] ?? '',
-    telefone_lider: row[4] ?? '',
-    supervisor: row[5] ?? '',
-    telefone_supervisor: row[6] ?? '',
-    email: row[7] ?? '',
+    id_celula: String(row[0] ?? '').trim(),
+    rede: String(row[1] ?? '').trim(),
+    nome_celula: String(row[2] ?? '').trim(),
+    lider: String(row[3] ?? '').trim(),
+    telefone_lider: String(row[4] ?? '').trim(),
+    supervisor: String(row[5] ?? '').trim(),
+    telefone_supervisor: String(row[6] ?? '').trim(),
+    email: String(row[7] ?? '').trim(),
   };
 }
 
@@ -50,7 +50,7 @@ export async function appendCelula(data: CelulaInput): Promise<CelulaRow> {
   const row: CelulaRow = { id_celula, ...data };
   await sheets.spreadsheets.values.append({
     spreadsheetId, range: `${SHEET_NAME}!A:H`, valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [[row.id_celula, row.nome_celula, row.rede, row.lider, row.telefone_lider, row.supervisor, row.telefone_supervisor, row.email]] },
+    requestBody: { values: [[row.id_celula, row.rede, row.nome_celula, row.lider, row.telefone_lider, row.supervisor, row.telefone_supervisor, row.email]] },
   });
   return row;
 }
@@ -65,7 +65,7 @@ export async function updateCelula(id: string, data: CelulaInput): Promise<Celul
   const row: CelulaRow = { id_celula: id, ...data };
   await sheets.spreadsheets.values.update({
     spreadsheetId, range: `${SHEET_NAME}!A${absRow}:H${absRow}`, valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [[row.id_celula, row.nome_celula, row.rede, row.lider, row.telefone_lider, row.supervisor, row.telefone_supervisor, row.email]] },
+    requestBody: { values: [[row.id_celula, row.rede, row.nome_celula, row.lider, row.telefone_lider, row.supervisor, row.telefone_supervisor, row.email]] },
   });
   return row;
 }

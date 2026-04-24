@@ -7,7 +7,7 @@ export default function EstoquePage() {
   const [estoque, setEstoque] = useState<EstoqueRow[]>([]);
   const [produtos, setProdutos] = useState<ProdutoRow[]>([]);
   const [editMap, setEditMap] = useState<Record<string, { quantidade_kg: number; observacao: string }>>({});
-  const [newRow, setNewRow] = useState({ id_produto: '', quantidade_kg: 0, observacao: '' });
+  const [newRow, setNewRow] = useState({ nome_produto: '', quantidade_kg: 0, observacao: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 
@@ -27,7 +27,7 @@ export default function EstoquePage() {
   const handleSave = async (row: EstoqueRow) => {
     setSaving(row.id_estoque);
     const data = editMap[row.id_estoque];
-    const res = await fetch('/api/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_produto: row.id_produto, ...data }) });
+    const res = await fetch('/api/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome_produto: row.nome_produto, ...data }) });
     if (res.ok) {
       const updated = await res.json();
       setEstoque(estoque.map(e => e.id_estoque === row.id_estoque ? updated : e));
@@ -36,19 +36,19 @@ export default function EstoquePage() {
   };
 
   const handleCreate = async () => {
-    if (!newRow.id_produto) { alert('Selecione um produto'); return; }
+    if (!newRow.nome_produto) { alert('Selecione um produto'); return; }
     const res = await fetch('/api/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newRow) });
     if (res.ok) {
       const result = await res.json();
       // Upsert local state
-      const existing = estoque.find(e => e.id_produto === newRow.id_produto);
+      const existing = estoque.find(e => e.nome_produto === newRow.nome_produto);
       if (existing) {
-        setEstoque(estoque.map(e => e.id_produto === newRow.id_produto ? result : e));
+        setEstoque(estoque.map(e => e.nome_produto === newRow.nome_produto ? result : e));
       } else {
         setEstoque([...estoque, result]);
         setEditMap({ ...editMap, [result.id_estoque]: { quantidade_kg: result.quantidade_kg, observacao: result.observacao } });
       }
-      setNewRow({ id_produto: '', quantidade_kg: 0, observacao: '' });
+      setNewRow({ nome_produto: '', quantidade_kg: 0, observacao: '' });
     }
   };
 
@@ -95,9 +95,9 @@ export default function EstoquePage() {
             })}
             <tr className="bg-orange-50/60 border-t-4 border-orange-200">
               <td className="p-2">
-                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.id_produto} onChange={e => setNewRow({ ...newRow, id_produto: e.target.value })}>
+                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.nome_produto} onChange={e => setNewRow({ ...newRow, nome_produto: e.target.value })}>
                   <option value="">Selecione o produto...</option>
-                  {produtos.filter(p => !estoque.find(e => e.id_produto === p.id_produto)).map(p => <option key={p.id_produto} value={p.id_produto}>{p.nome_produto}</option>)}
+                  {produtos.filter(p => !estoque.find(e => e.nome_produto === p.nome_produto)).map(p => <option key={p.id_produto} value={p.nome_produto}>{p.nome_produto}</option>)}
                 </select>
               </td>
               <td className="p-2"><input type="number" min="0" step="0.1" className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white text-right font-bold" placeholder="0" value={newRow.quantidade_kg || ''} onChange={e => setNewRow({ ...newRow, quantidade_kg: Number(e.target.value) })} /></td>

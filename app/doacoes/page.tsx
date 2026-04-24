@@ -4,7 +4,7 @@ import { DoacaoRow } from '@/types/doacao';
 import { ProdutoRow } from '@/types/produto';
 import { CelulaRow } from '@/types/celula';
 
-const BLANK = { rede: '', celula: '', id_produto: '', quantidade_kg: 0, observacao: '' };
+const BLANK = { rede: '', celula: '', nome_produto: '', quantidade_kg: 0, observacao: '' };
 
 export default function DoacoesPage() {
   const [doacoes, setDoacoes] = useState<DoacaoRow[]>([]);
@@ -27,7 +27,6 @@ export default function DoacoesPage() {
     });
   }, []);
 
-  const celulasFiltered = newRow.rede ? celulas.filter(c => c.rede === newRow.rede) : celulas;
   const redes = Array.from(new Set(celulas.map(c => c.rede))).sort();
 
   const handleCelulaChange = (id_celula: string) => {
@@ -36,7 +35,10 @@ export default function DoacoesPage() {
   };
 
   const handleCreate = async () => {
-    if (!newRow.celula || !newRow.id_produto || !newRow.quantidade_kg) { alert('Preencha todos os campos obrigatórios.'); return; }
+    if (!newRow.celula || !newRow.nome_produto || !newRow.quantidade_kg) { 
+      alert('Preencha todos os campos obrigatórios (Célula, Produto e Quantidade).'); 
+      return; 
+    }
     setSubmitting(true);
     const res = await fetch('/api/doacoes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newRow) });
     if (res.ok) {
@@ -53,43 +55,40 @@ export default function DoacoesPage() {
     <div className="p-4 md:p-8">
       <div className="mb-8 p-6 bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl shadow-xl text-white">
         <h1 className="text-3xl font-bold mb-1">Doações</h1>
-        <p className="text-orange-100 text-sm">Registro de entrada de alimentos. Célula e produto via seleção direta.</p>
+        <p className="text-orange-100 text-sm">Registro de doações que alimentam o estoque automaticamente.</p>
       </div>
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-gray-100 text-gray-600 uppercase text-xs font-bold">
-              <th className="p-4 border-b">Data</th>
-              <th className="p-4 border-b">Rede</th>
+              <th className="p-4 border-b">ID Doação</th>
               <th className="p-4 border-b">Célula</th>
+              <th className="p-4 border-b">Rede</th>
               <th className="p-4 border-b">Produto</th>
               <th className="p-4 border-b w-36">Qtd (kg)</th>
               <th className="p-4 border-b">Observação</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {/* Nova linha sempre no topo (dentro do tbody) */}
             <tr className="bg-orange-50/60 border-b-4 border-orange-200">
-              <td className="p-4 text-xs text-gray-400 italic font-semibold">Hoje</td>
+              <td className="p-4 text-xs text-gray-400 italic font-semibold">Novo</td>
               <td className="p-2">
-                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.rede}
-                  onChange={e => setNewRow({ ...newRow, rede: e.target.value, celula: '' })}>
-                  <option value="">Rede...</option>
-                  {redes.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </td>
-              <td className="p-2">
-                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={celulas.find(c => c.nome_celula === newRow.celula)?.id_celula ?? ''}
+                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" 
+                  value={celulas.find(c => c.nome_celula === newRow.celula)?.id_celula ?? ''}
                   onChange={e => handleCelulaChange(e.target.value)}>
-                  <option value="">Selecione...</option>
-                  {celulasFiltered.map(c => <option key={c.id_celula} value={c.id_celula}>{c.nome_celula}</option>)}
+                  <option value="">Célula...</option>
+                  {celulas.map(c => <option key={c.id_celula} value={c.id_celula}>{c.nome_celula}</option>)}
                 </select>
               </td>
               <td className="p-2">
-                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.id_produto}
-                  onChange={e => setNewRow({ ...newRow, id_produto: e.target.value })}>
+                <input className="w-full p-2 text-sm border-2 border-gray-200 rounded-lg bg-gray-50 font-semibold text-gray-500" 
+                  value={newRow.rede} readOnly placeholder="Rede" />
+              </td>
+              <td className="p-2">
+                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.nome_produto}
+                  onChange={e => setNewRow({ ...newRow, nome_produto: e.target.value })}>
                   <option value="">Produto...</option>
-                  {produtos.map(p => <option key={p.id_produto} value={p.id_produto}>{p.nome_produto}</option>)}
+                  {produtos.map(p => <option key={p.nome_produto} value={p.nome_produto}>{p.nome_produto}</option>)}
                 </select>
               </td>
               <td className="p-2">
@@ -106,9 +105,9 @@ export default function DoacoesPage() {
             </tr>
             {doacoes.map(d => (
               <tr key={d.id_doacao} className="hover:bg-gray-50">
-                <td className="p-4 text-sm text-gray-600 whitespace-nowrap">{d.data}</td>
-                <td className="p-4 text-sm text-gray-700">{d.rede}</td>
+                <td className="p-4 text-xs text-gray-500 font-mono uppercase">{d.id_doacao}</td>
                 <td className="p-4 text-sm text-gray-700 font-medium">{d.celula}</td>
+                <td className="p-4 text-sm text-gray-700">{d.rede}</td>
                 <td className="p-4 text-sm text-gray-800 font-semibold">{d.nome_produto}</td>
                 <td className="p-4 text-sm font-bold text-green-700">{d.quantidade_kg} kg</td>
                 <td className="p-4 text-sm text-gray-500">{d.observacao || '—'}</td>

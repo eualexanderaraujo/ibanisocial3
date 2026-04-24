@@ -1,15 +1,15 @@
-import { getSheets, getSpreadsheetId, getTimestampParts } from '@/lib/googleSheets';
+import { getSheets, getSpreadsheetId } from '@/lib/googleSheets';
 import { DoacaoInput, DoacaoRow } from '@/types/doacao';
-import { getProdutos } from '@/lib/produtosSheets';
+import { incrementarEstoquePorNome } from '@/lib/estoqueSheets';
 import { v4 as uuidv4 } from 'uuid';
 
 const SHEET_NAME = 'doacoes';
-const HEADERS = ['id_doacao', 'data', 'rede', 'celula', 'id_produto', 'nome_produto', 'quantidade_kg', 'observacao'] as const;
+const HEADERS = ['id_doacao', 'Rede', 'Celula', 'Produto', 'Quantidade (kg)', 'Obsercacoes'] as const;
 
 async function getSheetValues() {
   const sheets = await getSheets();
   const spreadsheetId = getSpreadsheetId();
-  const response = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${SHEET_NAME}!A:H` });
+  const response = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${SHEET_NAME}!A:F` });
   return { sheets, spreadsheetId, values: response.data.values ?? [] };
 }
 
@@ -25,14 +25,12 @@ async function ensureHeaders() {
 
 function mapRow(row: string[]): DoacaoRow {
   return {
-    id_doacao: row[0] ?? '',
-    data: row[1] ?? '',
-    rede: row[2] ?? '',
-    celula: row[3] ?? '',
-    id_produto: row[4] ?? '',
-    nome_produto: row[5] ?? '',
-    quantidade_kg: Number(row[6] ?? 0),
-    observacao: row[7] ?? '',
+    id_doacao: String(row[0] ?? '').trim(),
+    rede: String(row[1] ?? '').trim(),
+    celula: String(row[2] ?? '').trim(),
+    nome_produto: String(row[3] ?? '').trim(),
+    quantidade_kg: Number(row[4] ?? 0),
+    observacao: String(row[5] ?? '').trim(),
   };
 }
 
@@ -47,21 +45,21 @@ export async function getDoacoes(): Promise<DoacaoRow[]> {
 export async function appendDoacao(data: DoacaoInput): Promise<DoacaoRow> {
   await ensureHeaders();
   const { sheets, spreadsheetId } = await getSheetValues();
-  const timestamp = getTimestampParts();
-  const produtos = await getProdutos();
-  const produto = produtos.find(p => p.id_produto === data.id_produto);
-  const nome_produto = produto?.nome_produto ?? '';
 
   const id_doacao = uuidv4().slice(0, 8).toUpperCase();
   const row: DoacaoRow = {
     id_doacao,
-    data: timestamp.display,
-    nome_produto,
     ...data,
   };
+
+  // 1. Salva na planilha de doações
   await sheets.spreadsheets.values.append({
-    spreadsheetId, range: `${SHEET_NAME}!A:H`, valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [[row.id_doacao, row.data, row.rede, row.celula, row.id_produto, row.nome_produto, row.quantidade_kg, row.observacao]] },
+    spreadsheetId, range: `${SHEET_NAME}!A:F`, valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [[row.id_doacao, row.rede, row.celula, row.nome_produto, row.quantidade_kg, row.observacao]] },
   });
+
+  // 2. Incrementa o estoque
+  await incrementarEstoquePorNome(row.nome_produto, row.quantidade_kg);
+
   return row;
 }

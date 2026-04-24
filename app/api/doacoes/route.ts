@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body.id_produto || !body.celula || !body.rede || !body.quantidade_kg) {
+    if (!body.nome_produto || !body.celula || !body.rede || !body.quantidade_kg) {
       return NextResponse.json({ error: 'Dados obrigatórios ausentes' }, { status: 400 });
     }
     return NextResponse.json(await appendDoacao(body), { status: 201 });

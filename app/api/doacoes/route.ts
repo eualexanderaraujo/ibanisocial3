@@ -13,6 +13,38 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // ── V2: lote de itens ─────────────────────────────────────────────
+    // body = { celula, rede, itens: [{ nome_produto, quantidade_kg, observacao }] }
+    if (body.itens && Array.isArray(body.itens)) {
+      if (!body.celula || !body.rede) {
+        return NextResponse.json({ error: 'Célula e Rede são obrigatórios' }, { status: 400 });
+      }
+      if (body.itens.length === 0) {
+        return NextResponse.json({ error: 'Inclua ao menos um item na doação' }, { status: 400 });
+      }
+
+      const results = [];
+      for (const item of body.itens as { nome_produto: string; quantidade_kg: number; observacao?: string }[]) {
+        if (!item.nome_produto || !item.quantidade_kg) continue; // ignora linhas em branco
+        const created = await appendDoacao({
+          celula: body.celula,
+          rede: body.rede,
+          nome_produto: item.nome_produto,
+          quantidade_kg: item.quantidade_kg,
+          observacao: item.observacao ?? '',
+        });
+        results.push(created);
+      }
+
+      if (results.length === 0) {
+        return NextResponse.json({ error: 'Nenhum item válido enviado' }, { status: 400 });
+      }
+
+      return NextResponse.json(results, { status: 201 });
+    }
+
+    // ── V1 legado: item único ─────────────────────────────────────────
     if (!body.nome_produto || !body.celula || !body.rede || !body.quantidade_kg) {
       return NextResponse.json({ error: 'Dados obrigatórios ausentes' }, { status: 400 });
     }

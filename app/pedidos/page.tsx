@@ -87,7 +87,7 @@ export default function PedidosPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('/api/cadastro', {
+      const res = await fetch('/api/pedidos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -99,10 +99,12 @@ export default function PedidosPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         const err = await res.json();
-        alert('Erro ao enviar: ' + (err.error || 'Erro desconhecido'));
+        console.error('[pedidos] Erro da API:', err);
+        alert('Erro ao enviar: ' + (err.error || JSON.stringify(err.details ?? 'Erro desconhecido')));
       }
     } catch (err) {
-      alert('Erro de conexão');
+      console.error('[pedidos] Erro de conexão:', err);
+      alert('Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setSubmitting(false);
     }

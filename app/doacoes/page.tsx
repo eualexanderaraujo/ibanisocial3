@@ -89,7 +89,7 @@ export default function DoacoesPage() {
                 <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.id_produto}
                   onChange={e => setNewRow({ ...newRow, id_produto: e.target.value })}>
                   <option value="">Produto...</option>
-                  {produtos.map(p => <option key={p.id_produto} value={p.id_produto}>{p.nome}</option>)}
+                  {produtos.map(p => <option key={p.id_produto} value={p.id_produto}>{p.nome_produto}</option>)}
                 </select>
               </td>
               <td className="p-2">

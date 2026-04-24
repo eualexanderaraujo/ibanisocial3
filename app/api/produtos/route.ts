@@ -13,8 +13,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body.nome) return NextResponse.json({ error: 'Nome do produto é obrigatório' }, { status: 400 });
-    const produto = await appendProduto({ nome: body.nome, unidade: body.unidade ?? 'kg', ativo: body.ativo ?? true });
+    if (!body.nome_produto) return NextResponse.json({ error: 'Nome do produto é obrigatório' }, { status: 400 });
+    const produto = await appendProduto({ nome_produto: body.nome_produto, unidade: body.unidade ?? 'kg', ativo: body.ativo ?? true });
     return NextResponse.json(produto, { status: 201 });
   } catch (err) {
     console.error('[POST /api/produtos]', err);

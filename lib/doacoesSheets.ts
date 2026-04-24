@@ -50,7 +50,7 @@ export async function appendDoacao(data: DoacaoInput): Promise<DoacaoRow> {
   const timestamp = getTimestampParts();
   const produtos = await getProdutos();
   const produto = produtos.find(p => p.id_produto === data.id_produto);
-  const nome_produto = produto?.nome ?? '';
+  const nome_produto = produto?.nome_produto ?? '';
 
   const id_doacao = uuidv4().slice(0, 8).toUpperCase();
   const row: DoacaoRow = {

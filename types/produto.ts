@@ -1,6 +1,6 @@
 export interface ProdutoRow {
   id_produto: string;
-  nome: string;
+  nome_produto: string;
   unidade: 'kg' | 'un';
   ativo: boolean;
 }

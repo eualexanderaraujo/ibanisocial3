@@ -97,7 +97,7 @@ export default function EstoquePage() {
               <td className="p-2">
                 <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.id_produto} onChange={e => setNewRow({ ...newRow, id_produto: e.target.value })}>
                   <option value="">Selecione o produto...</option>
-                  {produtos.filter(p => !estoque.find(e => e.id_produto === p.id_produto)).map(p => <option key={p.id_produto} value={p.id_produto}>{p.nome}</option>)}
+                  {produtos.filter(p => !estoque.find(e => e.id_produto === p.id_produto)).map(p => <option key={p.id_produto} value={p.id_produto}>{p.nome_produto}</option>)}
                 </select>
               </td>
               <td className="p-2"><input type="number" min="0" step="0.1" className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white text-right font-bold" placeholder="0" value={newRow.quantidade_kg || ''} onChange={e => setNewRow({ ...newRow, quantidade_kg: Number(e.target.value) })} /></td>

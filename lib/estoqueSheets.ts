@@ -50,7 +50,7 @@ export async function upsertEstoque(data: EstoqueInput): Promise<EstoqueRow> {
   // Buscar nome do produto
   const produtos = await getProdutos();
   const produto = produtos.find(p => p.id_produto === data.id_produto);
-  const nome_produto = produto?.nome ?? '';
+  const nome_produto = produto?.nome_produto ?? '';
 
   // Se já existe uma linha para esse produto, atualiza
   const [, ...rows] = values;

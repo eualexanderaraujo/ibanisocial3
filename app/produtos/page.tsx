@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ProdutoRow } from '@/types/produto';
 
-const BLANK = { nome: '', unidade: 'kg' as 'kg' | 'un', ativo: true };
+const BLANK = { nome_produto: '', unidade: 'kg' as 'kg' | 'un', ativo: true };
 
 export default function ProdutosPage() {
   const [rows, setRows] = useState<ProdutoRow[]>([]);
@@ -33,7 +33,7 @@ export default function ProdutosPage() {
   };
 
   const handleCreate = async () => {
-    if (!newRow.nome) { alert('Nome é obrigatório'); return; }
+    if (!newRow.nome_produto) { alert('Nome é obrigatório'); return; }
     const res = await fetch('/api/produtos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newRow) });
     if (res.ok) {
       const created = await res.json();
@@ -67,7 +67,7 @@ export default function ProdutosPage() {
               const changed = JSON.stringify(edit) !== JSON.stringify(row);
               return (
                 <tr key={row.id_produto} className={`hover:bg-gray-50 ${!row.ativo ? 'opacity-50' : ''}`}>
-                  <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.nome} onChange={e => setEditMap({ ...editMap, [row.id_produto]: { ...edit, nome: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_produto)} /></td>
+                  <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.nome_produto} onChange={e => setEditMap({ ...editMap, [row.id_produto]: { ...edit, nome_produto: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_produto)} /></td>
                   <td className="p-2">
                     <select className="w-full p-2 text-sm border rounded-lg bg-white" value={edit.unidade} onChange={e => setEditMap({ ...editMap, [row.id_produto]: { ...edit, unidade: e.target.value as 'kg' | 'un' } })}>
                       <option value="kg">kg</option>
@@ -84,7 +84,7 @@ export default function ProdutosPage() {
               );
             })}
             <tr className="bg-orange-50/60 border-t-4 border-orange-200">
-              <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Ex: Arroz, Feijão..." value={newRow.nome} onChange={e => setNewRow({ ...newRow, nome: e.target.value })} /></td>
+              <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Ex: Arroz, Feijão..." value={newRow.nome_produto} onChange={e => setNewRow({ ...newRow, nome_produto: e.target.value })} /></td>
               <td className="p-2"><select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.unidade} onChange={e => setNewRow({ ...newRow, unidade: e.target.value as 'kg' | 'un' })}><option value="kg">kg</option><option value="un">un</option></select></td>
               <td className="p-2 text-center"><input type="checkbox" checked={newRow.ativo} className="w-4 h-4 accent-orange-500" onChange={e => setNewRow({ ...newRow, ativo: e.target.checked })} /></td>
               <td className="p-2"><button onClick={handleCreate} className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold w-full">+ Adicionar</button></td>

@@ -254,15 +254,18 @@ export async function ensureHeaders() {
   const { sheets, spreadsheetId, values } = await getSheetValues();
   const currentHeaders = values[0] ?? [];
   const missingHeaders = HEADERS.filter((header) => !currentHeaders.includes(header));
-  const normalizedHeaders = HEADERS.map((header, index) => currentHeaders[index] ?? header);
-  const shouldUpdateHeaders = currentHeaders.length === 0 || missingHeaders.length > 0 || normalizedHeaders.length !== currentHeaders.length;
+  const normalizedHeaders = HEADERS.map((header) => header);
+  const isOrderCorrect = HEADERS.every((h, i) => currentHeaders[i] === h);
+  const shouldUpdateHeaders = currentHeaders.length === 0 || missingHeaders.length > 0 || !isOrderCorrect;
 
   if (shouldUpdateHeaders) {
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `${SHEET_NAME}!A1`,
       valueInputOption: 'RAW',
-      requestBody: { values: [HEADERS as unknown as string[]] },
+      requestBody: {
+        values: [normalizedHeaders],
+      },
     });
   }
 }
@@ -293,8 +296,9 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:AE`,
+    range: `${SHEET_NAME}!A:AD`,
     valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
     requestBody: {
       values: [[
         row.id_pedido,

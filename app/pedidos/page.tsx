@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { CelulaRow } from '@/types/celula';
 import { CadastroFormData, getTipoCesta } from '@/lib/schema';
-import Footer from '@/components/Footer';
 
 export default function PedidosPage() {
   const [celulas, setCelulas] = useState<CelulaRow[]>([]);
@@ -342,7 +341,6 @@ export default function PedidosPage() {
           </form>
         )}
       </div>
-      <Footer />
     </div>
   );
 }

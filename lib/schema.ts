@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CadastroInput, CaseStatus, PriorityLabel, PriorityResult } from '@/types/cadastro';
 
-export const REDES = ['Azul', 'Vermelha', 'Verde', 'Amarela', 'Branca', 'Laranja', 'Roxa', 'Outra'] as const;
+export const REDES = ['AZUL', 'VERMELHA', 'VERDE', 'AMARELA', 'BRANCA', 'LARANJA', 'ROXA', 'OUTRA'] as const;
 export const TIPOS_RENDA = ['CLT', 'Autonomo', 'Bico', 'Beneficio Social', 'Nenhuma'] as const;
 export const FAIXAS_RENDA = ['Sem renda', 'Ate R$600', 'Ate R$1000', 'Ate R$2000', 'Acima de R$2000'] as const;
 export const PROBLEMAS_SOCIAIS = [
@@ -30,20 +30,17 @@ export const PRIORITY_COLORS: Record<PriorityLabel, string> = {
   Baixa: '#2563eb',
 };
 export const REDE_COLORS: Record<string, string> = {
-  Azul: '#2563eb',
-  Vermelha: '#dc2626',
-  Verde: '#16a34a',
-  Amarela: '#ca8a04',
-  Branca: '#cbd5e1',
-  Laranja: '#ea580c',
-  Roxa: '#7c3aed',
-  Outra: '#64748b',
+  AZUL: '#2563eb',
+  VERMELHA: '#dc2626',
+  VERDE: '#16a34a',
+  AMARELA: '#ca8a04',
+  BRANCA: '#cbd5e1',
+  LARANJA: '#ea580c',
+  ROXA: '#7c3aed',
+  OUTRA: '#64748b',
 };
 
-const phoneSchema = z
-  .string()
-  .min(14, 'Telefone invalido')
-  .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Use o formato (99) 99999-9999');
+const phoneSchema = z.string().min(8, 'Telefone invalido');
 
 export const cadastroSchema = z
   .object({
@@ -130,7 +127,8 @@ export function calculatePriority(data: CadastroInput): PriorityResult {
     'Acima de R$2000': 'renda acima da faixa prioritaria',
   };
 
-  const rendaScore = rendaPoints[data.faixa_renda] ?? 0;
+  const rendaKey = Object.keys(rendaPoints).find(k => data.faixa_renda?.toLowerCase().includes(k.toLowerCase())) || data.faixa_renda;
+  const rendaScore = rendaPoints[rendaKey] ?? 0;
   if (rendaScore > 0) addScore(rendaScore, rendaReason[data.faixa_renda]);
 
   if (data.criancas >= 3) addScore(3, 'tres ou mais criancas');

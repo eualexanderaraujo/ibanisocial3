@@ -87,7 +87,7 @@ export default function Home() {
         </div>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {MENU_ITEMS.map((item) => (
             <Link
               key={item.href}
@@ -116,12 +116,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Support Section */}
-        <div className="mt-16 text-center pt-8 border-t border-gray-50">
-          <p className="text-gray-400 text-sm">
-            Dúvidas ou problemas técnicos? Entre em contato com a equipe de TI da IBANI.
-          </p>
-        </div>
       </div>
     </div>
   );

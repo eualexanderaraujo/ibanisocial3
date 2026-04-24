@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body.id_produto) return NextResponse.json({ error: 'Produto obrigatório' }, { status: 400 });
+    if (!body.nome_produto) return NextResponse.json({ error: 'Produto obrigatório' }, { status: 400 });
     return NextResponse.json(await upsertEstoque(body), { status: 200 });
   } catch (err) {
     console.error('[POST /api/estoque]', err);

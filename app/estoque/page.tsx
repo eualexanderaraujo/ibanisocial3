@@ -61,11 +61,13 @@ export default function EstoquePage() {
         <p className="text-orange-100 text-sm">Controle de quantidade disponível por produto. Edição inline.</p>
       </div>
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[600px]">
+        <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-gray-100 text-gray-600 uppercase text-xs font-bold">
               <th className="p-4 border-b">Produto</th>
-              <th className="p-4 border-b w-40">Quantidade (kg)</th>
+              <th className="p-4 border-b w-32">Físico (kg)</th>
+              <th className="p-4 border-b w-32">Reservado (kg)</th>
+              <th className="p-4 border-b w-32">Saldo (kg)</th>
               <th className="p-4 border-b">Observação</th>
               <th className="p-4 border-b w-40">Atualizado em</th>
               <th className="p-4 border-b">Ação</th>
@@ -75,15 +77,21 @@ export default function EstoquePage() {
             {estoque.map(row => {
               const edit = editMap[row.id_estoque] ?? { quantidade_kg: row.quantidade_kg, observacao: row.observacao };
               const changed = edit.quantidade_kg !== row.quantidade_kg || edit.observacao !== row.observacao;
-              const low = row.quantidade_kg < 5;
+              const low = row.saldo_kg < 5;
               return (
                 <tr key={row.id_estoque} className={`hover:bg-gray-50 ${low ? 'bg-red-50/40' : ''}`}>
                   <td className="p-4 font-semibold text-gray-800 flex items-center gap-2">
-                    {low && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" title="Estoque baixo" />}
+                    {low && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" title="Saldo baixo" />}
                     {row.nome_produto}
                   </td>
                   <td className="p-2">
                     <input type="number" min="0" step="0.1" className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none text-right font-bold" value={edit.quantidade_kg} onChange={e => setEditMap({ ...editMap, [row.id_estoque]: { ...edit, quantidade_kg: Number(e.target.value) } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row)} />
+                  </td>
+                  <td className="p-4 text-sm text-right font-medium text-blue-600 bg-blue-50/30">
+                    {(row.quantidade_solicitada_kg || 0).toFixed(1)}
+                  </td>
+                  <td className={`p-4 text-sm text-right font-bold ${(row.saldo_kg || 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {(row.saldo_kg || 0).toFixed(1)}
                   </td>
                   <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.observacao} onChange={e => setEditMap({ ...editMap, [row.id_estoque]: { ...edit, observacao: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row)} /></td>
                   <td className="p-4 text-xs text-gray-500">{row.data_atualizacao}</td>
@@ -101,6 +109,8 @@ export default function EstoquePage() {
                 </select>
               </td>
               <td className="p-2"><input type="number" min="0" step="0.1" className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white text-right font-bold" placeholder="0" value={newRow.quantidade_kg || ''} onChange={e => setNewRow({ ...newRow, quantidade_kg: Number(e.target.value) })} /></td>
+              <td className="p-4 text-center text-gray-400">-</td>
+              <td className="p-4 text-center text-gray-400">-</td>
               <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Observação..." value={newRow.observacao} onChange={e => setNewRow({ ...newRow, observacao: e.target.value })} /></td>
               <td className="p-4 text-xs text-gray-400 italic">Hoje</td>
               <td className="p-2"><button onClick={handleCreate} className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold w-full">+ Adicionar</button></td>

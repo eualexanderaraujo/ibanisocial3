@@ -35,8 +35,11 @@ async function ensureHeaders() {
 }
 
 function mapRow(row: string[]): EstoqueRow {
-  const quantidade_kg = Number(row[2] ?? 0);
-  const quantidade_solicitada_kg = Number(row[3] ?? 0);
+  const q_fisico = Number(row[2] || 0);
+  const q_solicitada = Number(row[3] || 0);
+  const quantidade_kg = isNaN(q_fisico) ? 0 : q_fisico;
+  const quantidade_solicitada_kg = isNaN(q_solicitada) ? 0 : q_solicitada;
+  
   return {
     id_estoque: row[0] ?? '',
     nome_produto: row[1] ?? '',

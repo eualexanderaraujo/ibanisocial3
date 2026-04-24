@@ -16,10 +16,10 @@ export interface CadastroInput {
   criancas: number;
   adolescentes: number;
   idosos: number;
-  trabalham: string;
+  trabalham: number;
   tipo_renda: string;
   faixa_renda: string;
-  problemas: string;
+  problemas: string[];
   observacao: string;
   tipo_cesta?: 'Kids' | 'Adulto';
 }

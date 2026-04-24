@@ -21,7 +21,7 @@ export default function DoacoesPage() {
       fetch('/api/celulas').then(r => r.json()),
     ]).then(([d, p, c]) => {
       setDoacoes(Array.isArray(d) ? d : []);
-      setProdutos(Array.isArray(p) ? p.filter((x: ProdutoRow) => x.ativo) : []);
+      setProdutos(Array.isArray(p) ? p : []);
       setCelulas(Array.isArray(c) ? c : []);
       setLoading(false);
     });

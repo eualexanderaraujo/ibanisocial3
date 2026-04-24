@@ -58,10 +58,10 @@ export const cadastroSchema = z
     criancas: z.coerce.number().int().min(0),
     adolescentes: z.coerce.number().int().min(0),
     idosos: z.coerce.number().int().min(0),
-    trabalham: z.string().default('Não'),
+    trabalham: z.coerce.number().int().min(0).default(0),
     tipo_renda: z.string().min(1, 'Informe o tipo de renda'),
     faixa_renda: z.string().min(1, 'Informe a faixa de renda'),
-    problemas: z.string().default(''),
+    problemas: z.array(z.string()).default([]),
     observacao: z.string().max(1000, 'Limite de 1000 caracteres').default(''),
     tipo_cesta: z.enum(['Adulto', 'Kids']).default('Adulto'),
   })
@@ -76,7 +76,7 @@ export const cadastroSchema = z
       });
     }
 
-    if (data.rede === 'Outra' && data.celula.trim().length < 3) {
+    if (data.rede === 'OUTRA' && data.celula.trim().length < 3) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Detalhe a rede/celula quando selecionar Outra.',
@@ -137,7 +137,7 @@ export function calculatePriority(data: CadastroInput): PriorityResult {
   if (data.idosos >= 2) addScore(3, 'dois ou mais idosos');
   else if (data.idosos >= 1) addScore(2, 'ha idoso na familia');
 
-  if (data.trabalham === 'Não') addScore(2, 'nenhuma pessoa trabalhando');
+  if (data.trabalham === 0) addScore(2, 'nenhuma pessoa trabalhando');
 
   if (data.problemas && data.problemas.length > 5) {
     addScore(1, 'problemas sociais relatados');

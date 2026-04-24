@@ -21,6 +21,7 @@ export interface CadastroInput {
   faixa_renda: string;
   problemas: string[];
   observacao: string;
+  tipo_cesta?: 'Kids' | 'Adulto';
 }
 
 export interface PriorityResult {

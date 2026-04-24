@@ -277,14 +277,15 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
   const spreadsheetId = getSpreadsheetId();
   const timestamp = getTimestampParts();
   const priority = calculatePriority(data);
-  const tipo_cesta = getTipoCesta(data.criancas);
+  // Prioriza o tipo_cesta enviado pelo formulário; usa cálculo automático como fallback
+  const tipo_cesta: 'Kids' | 'Adulto' = data.tipo_cesta ?? getTipoCesta(data.criancas);
 
   const row: CadastroRow = {
     id_pedido: id,
     protocolo: id,
-    tipo_cesta,
     data: timestamp.display,
     ...data,
+    tipo_cesta, // sobrescreve o tipo_cesta do spread com o valor resolvido
     prioridade_score: priority.score,
     prioridade_label: priority.label,
     prioridade_motivos: priority.reasons,

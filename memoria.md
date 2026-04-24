@@ -40,7 +40,7 @@ Sistema de gestão social para a Igreja Batista Atitude, integrando controle de 
 - **Home**: Dashboard centralizado com grid de cards para acesso rápido a todos os módulos.
 - **Componentes**: 
     - `NavBar`: Navegação fixa com links para Início e Pedidos.
-    - `Footer`: Identidade institucional com logo da Igreja Batista Atitude.
+    - `Footer`: Identidade institucional com logo da Igreja Batista Atitude e créditos para Alexander Araujo.
 
 ---
 

@@ -15,7 +15,7 @@ export default function Footer() {
         </div>
         <p className="text-xs sm:text-sm text-gray-400 text-center font-medium">
           &copy; {new Date().getFullYear()} Igreja Batista Atitude de Nova Iguaçu <br className="sm:hidden" />
-          <span className="hidden sm:inline"> | </span> Ação Social | IBANI Atitude
+          <span className="hidden sm:inline"> | </span> Ação Social | Alexander Araujo
         </p>
       </div>
     </footer>

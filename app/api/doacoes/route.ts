@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDoacoes, appendDoacao } from '@/lib/doacoesSheets';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function GET() {
   try {
@@ -24,16 +25,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Inclua ao menos um item na doação' }, { status: 400 });
       }
 
+      const sharedId = uuidv4().slice(0, 8).toUpperCase();
       const results = [];
       for (const item of body.itens as { nome_produto: string; quantidade_kg: number; observacao?: string }[]) {
-        if (!item.nome_produto || !item.quantidade_kg) continue; // ignora linhas em branco
+        if (!item.nome_produto || !item.quantidade_kg) continue;
         const created = await appendDoacao({
           celula: body.celula,
           rede: body.rede,
           nome_produto: item.nome_produto,
           quantidade_kg: item.quantidade_kg,
           observacao: item.observacao ?? '',
-        });
+        }, sharedId);
         results.push(created);
       }
 

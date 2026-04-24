@@ -42,11 +42,11 @@ export async function getDoacoes(): Promise<DoacaoRow[]> {
   return rows.filter(r => r.some(c => String(c ?? '').trim())).map(mapRow);
 }
 
-export async function appendDoacao(data: DoacaoInput): Promise<DoacaoRow> {
+export async function appendDoacao(data: DoacaoInput, sharedId?: string): Promise<DoacaoRow> {
   await ensureHeaders();
   const { sheets, spreadsheetId } = await getSheetValues();
 
-  const id_doacao = uuidv4().slice(0, 8).toUpperCase();
+  const id_doacao = sharedId ?? uuidv4().slice(0, 8).toUpperCase();
   const row: DoacaoRow = {
     id_doacao,
     ...data,

@@ -1,12 +1,11 @@
 import { google } from 'googleapis';
-import { calculatePriority } from '@/lib/schema';
+import { calculatePriority, getTipoCesta } from '@/lib/schema';
 import { CadastroInput, CadastroRow, CaseStatus, PriorityResult } from '@/types/cadastro';
 
-const SHEET_NAME = 'cadastro_raw';
+const SHEET_NAME = 'pedidos';
 const HEADERS = [
-  'id',
+  'id_pedido',
   'data',
-  'data_iso',
   'email',
   'rede',
   'celula',
@@ -14,7 +13,7 @@ const HEADERS = [
   'telefone_lider',
   'supervisor',
   'telefone_supervisor',
-  'familia',
+  'beneficiado',
   'telefone',
   'total_pessoas',
   'adultos',
@@ -34,6 +33,7 @@ const HEADERS = [
   'atualizado_em',
   'atualizado_em_iso',
   'protocolo',
+  'tipo_cesta',
 ] as const;
 
 function getRequiredEnv(name: string) {
@@ -56,17 +56,17 @@ function getAuth() {
   });
 }
 
-async function getSheets() {
+export async function getSheets() {
   const auth = getAuth();
   await auth.authorize();
   return google.sheets({ version: 'v4', auth });
 }
 
-function getSpreadsheetId() {
+export function getSpreadsheetId() {
   return getRequiredEnv('GOOGLE_SHEET_ID');
 }
 
-function getTimestampParts(reference = new Date()) {
+export function getTimestampParts(reference = new Date()) {
   return {
     iso: reference.toISOString(),
     display: new Intl.DateTimeFormat('pt-BR', {
@@ -149,7 +149,7 @@ function mapLegacyRow(row: string[]): CadastroRow {
     telefone_lider: row[6] ?? '',
     supervisor: row[7] ?? '',
     telefone_supervisor: row[8] ?? '',
-    familia: row[9] ?? '',
+    beneficiado: row[9] ?? '',
     telefone: row[10] ?? '',
     total_pessoas: parseNumber(row[12] ?? ''),
     adultos: parseNumber(row[13] ?? ''),
@@ -165,13 +165,13 @@ function mapLegacyRow(row: string[]): CadastroRow {
 
   const priority = calculatePriority(input);
   const data = row[1] ?? '';
-  const dataIso = parseDisplayDateToIso(data);
+  const displayDate = row[1] ?? '';
 
   return {
-    id: row[0] ?? '',
+    id_pedido: row[0] ?? '',
     protocolo: row[0] ?? '',
-    data,
-    data_iso: dataIso,
+    tipo_cesta: getTipoCesta(input.criancas),
+    data: displayDate,
     ...input,
     prioridade_score: priority.score,
     prioridade_label: priority.label,
@@ -192,7 +192,7 @@ function mapCurrentRow(row: string[]): CadastroRow {
     telefone_lider: row[7] ?? '',
     supervisor: row[8] ?? '',
     telefone_supervisor: row[9] ?? '',
-    familia: row[10] ?? '',
+    beneficiado: row[10] ?? '',
     telefone: row[11] ?? '',
     total_pessoas: parseNumber(row[12] ?? ''),
     adultos: parseNumber(row[13] ?? ''),
@@ -209,10 +209,10 @@ function mapCurrentRow(row: string[]): CadastroRow {
   const priority = normalizePriority(row[22] ?? '', row[23] ?? '', row[24] ?? '', input);
 
   return {
-    id: row[0] ?? '',
+    id_pedido: row[0] ?? '',
     protocolo: row[29] ?? row[0] ?? '',
+    tipo_cesta: (row[30] as 'Kids' | 'Adulto') || getTipoCesta(input.criancas),
     data: row[1] ?? '',
-    data_iso: row[2] ?? parseDisplayDateToIso(row[1] ?? ''),
     ...input,
     prioridade_score: priority.score,
     prioridade_label: priority.label,
@@ -273,12 +273,13 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
   const spreadsheetId = getSpreadsheetId();
   const timestamp = getTimestampParts();
   const priority = calculatePriority(data);
+  const tipo_cesta = getTipoCesta(data.criancas);
 
   const row: CadastroRow = {
-    id,
+    id_pedido: id,
     protocolo: id,
+    tipo_cesta,
     data: timestamp.display,
-    data_iso: timestamp.iso,
     ...data,
     prioridade_score: priority.score,
     prioridade_label: priority.label,
@@ -291,13 +292,12 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:AD`,
+    range: `${SHEET_NAME}!A:AE`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[
-        row.id,
+        row.id_pedido,
         row.data,
-        row.data_iso,
         row.email,
         row.rede,
         row.celula,
@@ -305,7 +305,7 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
         row.telefone_lider,
         row.supervisor,
         row.telefone_supervisor,
-        row.familia,
+        row.beneficiado,
         row.telefone,
         row.total_pessoas,
         row.adultos,
@@ -325,6 +325,7 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
         row.atualizado_em,
         row.atualizado_em_iso,
         row.protocolo,
+        row.tipo_cesta,
       ]],
     },
   });
@@ -374,13 +375,12 @@ export async function updateCaseRow(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${SHEET_NAME}!A${absoluteRowIndex}:AD${absoluteRowIndex}`,
+    range: `${SHEET_NAME}!A${absoluteRowIndex}:AE${absoluteRowIndex}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[
-        nextRow.id,
+        nextRow.id_pedido,
         nextRow.data,
-        nextRow.data_iso,
         nextRow.email,
         nextRow.rede,
         nextRow.celula,
@@ -388,7 +388,7 @@ export async function updateCaseRow(
         nextRow.telefone_lider,
         nextRow.supervisor,
         nextRow.telefone_supervisor,
-        nextRow.familia,
+        nextRow.beneficiado,
         nextRow.telefone,
         nextRow.total_pessoas,
         nextRow.adultos,
@@ -408,6 +408,7 @@ export async function updateCaseRow(
         nextRow.atualizado_em,
         nextRow.atualizado_em_iso,
         nextRow.protocolo,
+        nextRow.tipo_cesta,
       ]],
     },
   });

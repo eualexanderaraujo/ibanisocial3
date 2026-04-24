@@ -26,7 +26,7 @@ const STEP_FIELDS: (keyof CadastroFormData)[][] = [
   ['email'],
   ['lider', 'telefone_lider', 'supervisor', 'telefone_supervisor'],
   ['rede', 'celula'],
-  ['familia', 'telefone'],
+  ['beneficiado', 'telefone'],
   ['total_pessoas', 'adultos', 'criancas', 'adolescentes', 'idosos'],
   ['trabalham', 'tipo_renda', 'faixa_renda'],
   ['problemas'],
@@ -238,7 +238,7 @@ export default function CadastroPage() {
 
             {step === 3 && (
               <FormSection title="Dados da familia" icon="4">
-                <InputField label="Nome do responsavel familiar" placeholder="Ana Oliveira" required error={errors.familia?.message} {...register('familia')} />
+                <InputField label="Nome do beneficiado" placeholder="Ana Oliveira" required error={errors.beneficiado?.message} {...register('beneficiado')} />
                 <Controller
                   name="telefone"
                   control={control}
@@ -351,7 +351,7 @@ export default function CadastroPage() {
                 <div className="mt-4 p-4 bg-brand-50 rounded-xl border border-brand-100">
                   <p className="text-sm font-semibold text-brand-800 mb-2">Resumo do cadastro</p>
                   <div className="text-xs text-brand-700 space-y-1">
-                    <p><span className="font-medium">Familia:</span> {watch('familia') || '-'}</p>
+                    <p><span className="font-medium">Beneficiado:</span> {watch('beneficiado') || '-'}</p>
                     <p><span className="font-medium">Rede / celula:</span> {(watch('rede') || '-')} / {(watch('celula') || '-')}</p>
                     <p><span className="font-medium">Total de pessoas:</span> {watch('total_pessoas') ?? '-'}</p>
                     <p><span className="font-medium">Renda:</span> {watch('faixa_renda') || '-'}</p>

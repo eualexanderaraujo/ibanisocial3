@@ -54,7 +54,7 @@ export const cadastroSchema = z
     telefone_supervisor: phoneSchema,
     rede: z.enum(REDES, { errorMap: () => ({ message: 'Selecione uma rede' }) }),
     celula: z.string().min(1, 'Nome da celula e obrigatorio'),
-    familia: z.string().min(2, 'Nome do responsavel familiar e obrigatorio'),
+    beneficiado: z.string().min(2, 'Nome do beneficiado e obrigatorio'),
     telefone: phoneSchema,
     total_pessoas: z.coerce.number().int().min(1, 'Informe ao menos 1 pessoa'),
     adultos: z.coerce.number().int().min(0),
@@ -96,6 +96,10 @@ export const cadastroSchema = z
   });
 
 export type CadastroFormData = z.infer<typeof cadastroSchema>;
+
+export function getTipoCesta(criancas: number): 'Kids' | 'Adulto' {
+  return criancas >= 1 ? 'Kids' : 'Adulto';
+}
 
 export function getStatusLabel(status: CaseStatus): string {
   return CASE_STATUS_LABELS[status];

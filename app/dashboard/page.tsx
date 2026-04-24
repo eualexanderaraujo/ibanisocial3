@@ -16,6 +16,7 @@ import {
   YAxis,
 } from 'recharts';
 import { CASE_STATUSES, CASE_STATUS_LABELS, PRIORITY_COLORS, REDE_COLORS } from '@/lib/schema';
+import { parseBRDate } from '@/lib/dateUtils';
 import { CadastroRow, CaseStatus } from '@/types/cadastro';
 
 interface DashboardResponse {
@@ -63,8 +64,8 @@ function toRgba(hex: string, alpha: number) {
 
 function formatMonthKey(value: string) {
   if (!value) return 'Sem data';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Sem data';
+  const date = parseBRDate(value);
+  if (Number.isNaN(date.getTime()) || date.getTime() === 0) return 'Sem data';
 
   return new Intl.DateTimeFormat('pt-BR', {
     month: 'short',
@@ -75,8 +76,8 @@ function formatMonthKey(value: string) {
 
 function formatDateTime(value: string) {
   if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+  const date = parseBRDate(value);
+  if (Number.isNaN(date.getTime()) || date.getTime() === 0) return value;
   return new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',
     timeStyle: 'short',
@@ -106,11 +107,11 @@ function buildCsv(rows: CadastroRow[]) {
   const lines = rows.map((row) =>
     [
       row.protocolo,
-      row.id,
+      row.id_pedido,
       row.data,
       row.rede,
       row.celula,
-      row.familia,
+      row.beneficiado,
       row.total_pessoas,
       row.criancas,
       row.idosos,
@@ -184,13 +185,13 @@ export default function DashboardPage() {
       setData(payload);
       setDraftStatus(
         payload.rows.reduce((acc: Record<string, CaseStatus>, row: CadastroRow) => {
-          acc[row.id] = row.status;
+          acc[row.id_pedido] = row.status;
           return acc;
         }, {})
       );
       setDraftNotes(
         payload.rows.reduce((acc: Record<string, string>, row: CadastroRow) => {
-          acc[row.id] = row.observacoes_internas ?? '';
+          acc[row.id_pedido] = row.observacoes_internas ?? '';
           return acc;
         }, {})
       );
@@ -244,7 +245,7 @@ export default function DashboardPage() {
   const filteredRows = rows
     .filter((row) => selectedRede === 'todas' || row.rede === selectedRede)
     .filter((row) => selectedCelula === 'todas' || row.celula === selectedCelula)
-    .filter((row) => selectedPeriodo === 'todos' || formatMonthKey(row.data_iso) === selectedPeriodo)
+    .filter((row) => selectedPeriodo === 'todos' || formatMonthKey(row.data) === selectedPeriodo)
     .filter((row) => selectedStatus === 'todos' || row.status === selectedStatus);
 
   const filteredSummary = {
@@ -280,8 +281,8 @@ export default function DashboardPage() {
 
   const historicoMensal = Object.entries(
     filteredRows.reduce<Record<string, { total: number; reference: number }>>((acc, row) => {
-      const key = formatMonthKey(row.data_iso);
-      const reference = new Date(row.data_iso).getTime() || 0;
+      const key = formatMonthKey(row.data);
+      const reference = parseBRDate(row.data).getTime() || 0;
       if (!acc[key]) acc[key] = { total: 0, reference };
       acc[key].total += 1;
       acc[key].reference = Math.min(acc[key].reference, reference || acc[key].reference);
@@ -292,7 +293,7 @@ export default function DashboardPage() {
     .sort((a, b) => a.reference - b.reference);
 
   const urgentes = [...filteredRows]
-    .sort((a, b) => b.prioridade_score - a.prioridade_score || (new Date(b.data_iso).getTime() - new Date(a.data_iso).getTime()))
+    .sort((a, b) => b.prioridade_score - a.prioridade_score || (parseBRDate(b.data).getTime() - parseBRDate(a.data).getTime()))
     .slice(0, 5);
 
   const exportCsv = () => {
@@ -307,17 +308,17 @@ export default function DashboardPage() {
   };
 
   const saveCase = async (row: CadastroRow) => {
-    setSavingId(row.id);
+    setSavingId(row.id_pedido);
     setError('');
 
     try {
-      const response = await fetch(`/api/cadastro/${row.id}`, {
+      const response = await fetch(`/api/cadastro/${row.id_pedido}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          status: draftStatus[row.id] ?? row.status,
-          observacoes_internas: draftNotes[row.id] ?? '',
+          status: draftStatus[row.id_pedido] ?? row.status,
+          observacoes_internas: draftNotes[row.id_pedido] ?? '',
         }),
       });
 
@@ -328,7 +329,7 @@ export default function DashboardPage() {
 
       setData((current) => {
         if (!current) return current;
-        const nextRows = current.rows.map((currentRow) => (currentRow.id === row.id ? payload.row : currentRow));
+        const nextRows = current.rows.map((currentRow) => (currentRow.id_pedido === row.id_pedido ? payload.row : currentRow));
         return { ...current, rows: nextRows };
       });
     } catch (nextError) {
@@ -589,10 +590,10 @@ export default function DashboardPage() {
                 <p className="text-gray-400 text-sm">Nenhum caso disponivel.</p>
               ) : (
                 urgentes.map((row) => (
-                  <div key={row.id} className="rounded-2xl border border-gray-100 p-4">
+                  <div key={row.id_pedido} className="rounded-2xl border border-gray-100 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-gray-900">{row.familia}</p>
+                        <p className="font-semibold text-gray-900">{row.beneficiado}</p>
                         <p className="text-xs text-gray-500">{row.rede} / {row.celula}</p>
                       </div>
                       <span
@@ -633,10 +634,10 @@ export default function DashboardPage() {
               {filteredRows.map((row) => {
                 const redeColor = REDE_COLORS[row.rede] ?? REDE_COLORS.Outra;
                 const priorityColor = PRIORITY_COLORS[row.prioridade_label];
-                const currentStatus = draftStatus[row.id] ?? row.status;
+                const currentStatus = draftStatus[row.id_pedido] ?? row.status;
 
                 return (
-                  <div key={row.id} className="p-6">
+                  <div key={row.id_pedido} className="p-6">
                     <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -663,13 +664,13 @@ export default function DashboardPage() {
                             {CASE_STATUS_LABELS[currentStatus]}
                           </span>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">{row.familia || 'Familia nao informada'}</h3>
+                        <h3 className="text-lg font-bold text-gray-900">{row.beneficiado || 'Familia nao informada'}</h3>
                         <p className="text-sm font-mono text-brand-700 mt-1">Protocolo: {row.protocolo}</p>
                         <p className="text-sm text-gray-500 mt-1">
                           {row.celula} | {row.total_pessoas} pessoa(s) | {row.faixa_renda}
                         </p>
                         <p className="text-sm text-gray-500">Criancas: {row.criancas} | Idosos: {row.idosos} | Trabalhando: {row.trabalham}</p>
-                        <p className="text-sm text-gray-500">Criado em: {formatDateTime(row.data_iso)} | Atualizado em: {formatDateTime(row.atualizado_em_iso || row.data_iso)}</p>
+                        <p className="text-sm text-gray-500">Criado em: {formatDateTime(row.data)} | Atualizado em: {formatDateTime(row.data)}</p>
                         <p className="text-sm text-gray-700 mt-3">{row.observacao || 'Sem observacoes publicas.'}</p>
                         <p className="text-xs text-gray-500 mt-3">
                           Motivos da triagem: {row.prioridade_motivos.join(' | ') || 'Sem fatores adicionais.'}
@@ -680,7 +681,7 @@ export default function DashboardPage() {
                         <label className="text-sm font-semibold text-gray-700">Status do caso</label>
                         <select
                           value={currentStatus}
-                          onChange={(event) => setDraftStatus((current) => ({ ...current, [row.id]: event.target.value as CaseStatus }))}
+                          onChange={(event) => setDraftStatus((current) => ({ ...current, [row.id_pedido]: event.target.value as CaseStatus }))}
                           className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50"
                         >
                           {CASE_STATUSES.map((status) => (
@@ -691,8 +692,8 @@ export default function DashboardPage() {
                         <label className="block text-sm font-semibold text-gray-700 mt-4">Observacoes internas</label>
                         <textarea
                           rows={5}
-                          value={draftNotes[row.id] ?? ''}
-                          onChange={(event) => setDraftNotes((current) => ({ ...current, [row.id]: event.target.value }))}
+                          value={draftNotes[row.id_pedido] ?? ''}
+                          onChange={(event) => setDraftNotes((current) => ({ ...current, [row.id_pedido]: event.target.value }))}
                           className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 resize-none"
                           placeholder="Registre andamento, aprovacao, entrega ou justificativa."
                         />
@@ -700,10 +701,10 @@ export default function DashboardPage() {
                         <button
                           type="button"
                           onClick={() => void saveCase(row)}
-                          disabled={savingId === row.id}
+                          disabled={savingId === row.id_pedido}
                           className="mt-4 w-full py-3 px-4 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 disabled:opacity-60"
                         >
-                          {savingId === row.id ? 'Salvando...' : 'Salvar acompanhamento'}
+                          {savingId === row.id_pedido ? 'Salvando...' : 'Salvar acompanhamento'}
                         </button>
                       </div>
                     </div>

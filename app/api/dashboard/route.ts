@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { requireDashboardAuth, isDashboardAuthEnabled } from '@/lib/adminAuth';
 import { REDE_COLORS, getStatusLabel } from '@/lib/schema';
 import { getRows } from '@/lib/googleSheets';
+import { parseBRDate } from '@/lib/dateUtils';
 import { CadastroRow } from '@/types/cadastro';
 
 function getMonthKey(value: string) {
   if (!value) return 'Sem data';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Sem data';
+  const date = parseBRDate(value);
+  if (Number.isNaN(date.getTime()) || date.getTime() === 0) return 'Sem data';
 
   return new Intl.DateTimeFormat('pt-BR', {
     month: 'short',
@@ -17,7 +18,7 @@ function getMonthKey(value: string) {
 }
 
 function sortByNewest(a: CadastroRow, b: CadastroRow) {
-  return new Date(b.data_iso).getTime() - new Date(a.data_iso).getTime();
+  return parseBRDate(b.data).getTime() - parseBRDate(a.data).getTime();
 }
 
 export async function GET() {
@@ -44,7 +45,7 @@ export async function GET() {
     }, {});
 
     const historicoMensalMap = rows.reduce<Record<string, number>>((acc, row) => {
-      const monthKey = getMonthKey(row.data_iso);
+      const monthKey = getMonthKey(row.data);
       acc[monthKey] = (acc[monthKey] ?? 0) + 1;
       return acc;
     }, {});
@@ -75,7 +76,7 @@ export async function GET() {
       filters: {
         redes: Array.from(new Set(rows.map((row) => row.rede))).sort(),
         celulas: Array.from(new Set(rows.map((row) => row.celula))).sort(),
-        periodos: Array.from(new Set(rows.map((row) => getMonthKey(row.data_iso)))),
+        periodos: Array.from(new Set(rows.map((row) => getMonthKey(row.data)))),
       },
       charts: {
         porRede,

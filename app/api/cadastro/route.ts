@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const row = await appendRow(id, parsed.data);
 
     return NextResponse.json(
-      { success: true, id: row.id, protocolo: row.protocolo, prioridade: row.prioridade_label },
+      { success: true, id: row.id_pedido, protocolo: row.protocolo, prioridade: row.prioridade_label },
       { status: 201 }
     );
   } catch (err) {

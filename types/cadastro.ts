@@ -9,7 +9,7 @@ export interface CadastroInput {
   telefone_supervisor: string;
   rede: string;
   celula: string;
-  familia: string;
+  beneficiado: string;
   telefone: string;
   total_pessoas: number;
   adultos: number;
@@ -30,10 +30,10 @@ export interface PriorityResult {
 }
 
 export interface CadastroRow extends CadastroInput {
-  id: string;
+  id_pedido: string;
   protocolo: string;
+  tipo_cesta: 'Kids' | 'Adulto';
   data: string;
-  data_iso: string;
   prioridade_score: number;
   prioridade_label: PriorityLabel;
   prioridade_motivos: string[];

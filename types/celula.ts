@@ -4,6 +4,9 @@ export interface CelulaRow {
   rede: string;
   lider: string;
   telefone_lider: string;
+  supervisor: string;
+  telefone_supervisor: string;
+  email: string;
 }
 
 export type CelulaInput = Omit<CelulaRow, 'id_celula'>;

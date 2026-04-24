@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { CelulaRow } from '@/types/celula';
 
 const REDES = ['Azul', 'Vermelha', 'Verde', 'Amarela', 'Branca', 'Laranja', 'Roxa', 'Outra'];
-const BLANK = { nome_celula: '', rede: 'Azul', lider: '', telefone_lider: '' };
+const BLANK = { nome_celula: '', rede: 'Azul', lider: '', telefone_lider: '', supervisor: '', telefone_supervisor: '', email: '' };
 
 export default function CelulasPage() {
   const [rows, setRows] = useState<CelulaRow[]>([]);
@@ -61,6 +61,9 @@ export default function CelulasPage() {
               <th className="p-4 border-b">Rede</th>
               <th className="p-4 border-b">Líder</th>
               <th className="p-4 border-b">Tel. Líder</th>
+              <th className="p-4 border-b">Supervisor</th>
+              <th className="p-4 border-b">Tel. Supervisor</th>
+              <th className="p-4 border-b">E-mail</th>
               <th className="p-4 border-b">Ação</th>
             </tr>
           </thead>
@@ -70,13 +73,7 @@ export default function CelulasPage() {
               const changed = JSON.stringify(edit) !== JSON.stringify(row);
               return (
                 <tr key={row.id_celula} className="hover:bg-gray-50">
-                  {(['nome_celula', 'lider', 'telefone_lider'] as const).map(f => (
-                    f === 'nome_celula' ? (
-                      <td key={f} className="p-2">
-                        <input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit[f]} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, [f]: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
-                      </td>
-                    ) : null
-                  ))}
+                  <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.nome_celula} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, nome_celula: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
                   <td className="p-2">
                     <select className="w-full p-2 text-sm border rounded-lg bg-white" value={edit.rede} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, rede: e.target.value } })}>
                       {REDES.map(r => <option key={r}>{r}</option>)}
@@ -84,6 +81,9 @@ export default function CelulasPage() {
                   </td>
                   <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.lider} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, lider: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
                   <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.telefone_lider} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, telefone_lider: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
+                  <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.supervisor} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, supervisor: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
+                  <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.telefone_supervisor} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, telefone_supervisor: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
+                  <td className="p-2"><input type="email" className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.email} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, email: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
                   <td className="p-2">
                     {changed && <button onClick={() => handleSave(row.id_celula)} disabled={saving === row.id_celula} className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">{saving === row.id_celula ? '...' : 'Salvar'}</button>}
                   </td>
@@ -94,7 +94,10 @@ export default function CelulasPage() {
               <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Nome da célula" value={newRow.nome_celula} onChange={e => setNewRow({ ...newRow, nome_celula: e.target.value })} /></td>
               <td className="p-2"><select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.rede} onChange={e => setNewRow({ ...newRow, rede: e.target.value })}>{REDES.map(r => <option key={r}>{r}</option>)}</select></td>
               <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Nome do líder" value={newRow.lider} onChange={e => setNewRow({ ...newRow, lider: e.target.value })} /></td>
-              <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="(99) 99999-9999" value={newRow.telefone_lider} onChange={e => setNewRow({ ...newRow, telefone_lider: e.target.value })} /></td>
+              <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Tel Líder" value={newRow.telefone_lider} onChange={e => setNewRow({ ...newRow, telefone_lider: e.target.value })} /></td>
+              <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Nome Supervisor" value={newRow.supervisor} onChange={e => setNewRow({ ...newRow, supervisor: e.target.value })} /></td>
+              <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Tel Supervisor" value={newRow.telefone_supervisor} onChange={e => setNewRow({ ...newRow, telefone_supervisor: e.target.value })} /></td>
+              <td className="p-2"><input type="email" className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="E-mail" value={newRow.email} onChange={e => setNewRow({ ...newRow, email: e.target.value })} /></td>
               <td className="p-2"><button onClick={handleCreate} className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold w-full">+ Adicionar</button></td>
             </tr>
           </tbody>

@@ -5,14 +5,11 @@ import { EstoqueRow } from '@/types/estoque';
 import { 
   Package, 
   Search, 
-  ArrowUpRight, 
   ArrowDownRight, 
   AlertCircle, 
   CheckCircle2, 
   RefreshCw,
-  Info,
-  Database,
-  BarChart3
+  Database
 } from 'lucide-react';
 
 export default function EstoquePage() {
@@ -113,81 +110,119 @@ export default function EstoquePage() {
           </button>
         </div>
 
-        {/* Grade de Itens */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Lista de Itens */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-900/5 border border-gray-100 overflow-hidden">
           {filteredEstoque.length === 0 ? (
-            <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
+            <div className="py-20 text-center">
               <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 font-medium">Nenhum item encontrado no estoque.</p>
             </div>
           ) : (
-            filteredEstoque.map(item => {
-              const saldo = Number(item.saldo_kg);
-              const isLow = saldo < 10;
-              const isNegative = saldo < 0;
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white uppercase text-[11px] font-bold tracking-wider">
+                  <th className="px-6 py-4">Produto</th>
+                  <th className="px-6 py-4 text-right">Físico (kg)</th>
+                  <th className="px-6 py-4 text-right">Reservado (kg)</th>
+                  <th className="px-6 py-4 text-right">Saldo (kg)</th>
+                  <th className="px-6 py-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredEstoque.map((item, idx) => {
+                  const saldo = Number(item.saldo_kg);
+                  const isLow = saldo < 10;
+                  const isNegative = saldo < 0;
 
-              return (
-                <div key={item.id_estoque} className="group bg-white rounded-3xl border border-gray-100 shadow-xl shadow-slate-900/5 overflow-hidden hover:border-orange-200 transition-all hover:shadow-orange-900/10">
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-orange-50 transition-colors">
-                        <Package className="w-6 h-6 text-gray-400 group-hover:text-orange-600 transition-colors" />
-                      </div>
-                      {isLow ? (
-                        <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isNegative ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                          <AlertCircle className="w-3 h-3" />
-                          {isNegative ? 'Crítico' : 'Baixo'}
+                  const statusBadge = isNegative ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-600 border border-red-100 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
+                      <AlertCircle className="w-3 h-3" /> Crítico
+                    </span>
+                  ) : isLow ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
+                      <ArrowDownRight className="w-3 h-3" /> Baixo
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap">
+                      <CheckCircle2 className="w-3 h-3" /> Estável
+                    </span>
+                  );
+
+                  return (
+                    <tr
+                      key={item.id_estoque}
+                      className={`group transition-colors hover:bg-orange-50/40 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
+                    >
+                      {/* Produto */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-100 group-hover:bg-orange-100 rounded-xl flex items-center justify-center transition-colors shrink-0">
+                            <Package className="w-4 h-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-gray-800 truncate group-hover:text-orange-600 transition-colors">
+                              {item.nome_produto}
+                            </p>
+                            <p className="text-[10px] text-gray-400 font-mono uppercase">{item.id_estoque}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Físico */}
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-sm font-semibold text-gray-700">
+                          {Number(item.quantidade_estoque_kg).toFixed(1)}
                         </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-black uppercase tracking-wider">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Estável
+                        <span className="text-xs text-gray-400 ml-1">kg</span>
+                      </td>
+
+                      {/* Reservado */}
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-sm font-semibold text-orange-600">
+                          {Number(item.quantidade_reservada_kg).toFixed(1)}
                         </span>
-                      )}
-                    </div>
+                        <span className="text-xs text-gray-400 ml-1">kg</span>
+                      </td>
 
-                    <h3 className="text-xl font-extrabold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors truncate">
-                      {item.nome_produto}
-                    </h3>
-                    <p className="text-xs text-gray-400 font-medium mb-6 uppercase tracking-widest">ID: {item.id_estoque}</p>
+                      {/* Saldo */}
+                      <td className="px-6 py-4 text-right">
+                        <span className={`text-sm font-black ${isNegative ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-emerald-600'}`}>
+                          {Number(item.saldo_kg).toFixed(1)}
+                        </span>
+                        <span className="text-xs text-gray-400 ml-1">kg</span>
+                      </td>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Físico</p>
-                        <p className="text-lg font-bold text-gray-800">{item.quantidade_estoque_kg} kg</p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Reservado</p>
-                        <p className="text-lg font-bold text-orange-600">{item.quantidade_reservada_kg} kg</p>
-                      </div>
-                    </div>
+                      {/* Status */}
+                      <td className="px-6 py-4 text-center">
+                        {statusBadge}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
 
-                    <div className={`p-4 rounded-2xl border-2 flex items-center justify-between transition-colors ${
-                      isNegative 
-                        ? 'bg-red-50 border-red-100 text-red-700' 
-                        : isLow 
-                          ? 'bg-amber-50 border-amber-100 text-amber-700'
-                          : 'bg-emerald-50 border-emerald-100 text-emerald-700'
-                    }`}>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Saldo Disponível</p>
-                        <p className="text-2xl font-black">{item.saldo_kg} kg</p>
-                      </div>
-                      <BarChart3 className="w-8 h-8 opacity-20" />
-                    </div>
-                  </div>
-                  
-                  {item.observacao && (
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
-                      <Info className="w-4 h-4 text-gray-400 shrink-0" />
-                      <p className="text-xs text-gray-500 font-medium truncate italic">
-                        {item.observacao}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })
+              {/* Totais */}
+              <tfoot>
+                <tr className="bg-slate-900/5 border-t-2 border-slate-200 font-bold text-sm">
+                  <td className="px-6 py-3 text-gray-500 uppercase text-[11px] tracking-wider">
+                    {filteredEstoque.length} produto(s)
+                  </td>
+                  <td className="px-6 py-3 text-right text-gray-700">
+                    {filteredEstoque.reduce((a, i) => a + Number(i.quantidade_estoque_kg), 0).toFixed(1)}
+                    <span className="text-xs text-gray-400 ml-1">kg</span>
+                  </td>
+                  <td className="px-6 py-3 text-right text-orange-600">
+                    {filteredEstoque.reduce((a, i) => a + Number(i.quantidade_reservada_kg), 0).toFixed(1)}
+                    <span className="text-xs text-gray-400 ml-1">kg</span>
+                  </td>
+                  <td className="px-6 py-3 text-right text-emerald-600">
+                    {filteredEstoque.reduce((a, i) => a + Number(i.saldo_kg), 0).toFixed(1)}
+                    <span className="text-xs text-gray-400 ml-1">kg</span>
+                  </td>
+                  <td />
+                </tr>
+              </tfoot>
+            </table>
           )}
         </div>
       </div>

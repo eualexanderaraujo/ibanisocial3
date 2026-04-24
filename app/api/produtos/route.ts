@@ -14,7 +14,13 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     if (!body.nome_produto) return NextResponse.json({ error: 'Nome do produto é obrigatório' }, { status: 400 });
-    const produto = await appendProduto({ nome_produto: body.nome_produto, unidade: body.unidade ?? 'kg', ativo: body.ativo ?? true, adultos_kg: body.adultos_kg ?? 0, kids_kg: body.kids_kg ?? 0 });
+    
+    const produto = await appendProduto({ 
+      nome_produto: body.nome_produto, 
+      quantidade_kg: Number(body.quantidade_kg ?? 0), 
+      tipo_cesta: body.tipo_cesta ?? 'Adulto/Kids'
+    });
+    
     return NextResponse.json(produto, { status: 201 });
   } catch (err) {
     console.error('[POST /api/produtos]', err);

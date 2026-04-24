@@ -1,122 +1,195 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { EstoqueRow } from '@/types/estoque';
-import { ProdutoRow } from '@/types/produto';
+import { 
+  Package, 
+  Search, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  AlertCircle, 
+  CheckCircle2, 
+  RefreshCw,
+  Info,
+  Database,
+  BarChart3
+} from 'lucide-react';
 
 export default function EstoquePage() {
   const [estoque, setEstoque] = useState<EstoqueRow[]>([]);
-  const [produtos, setProdutos] = useState<ProdutoRow[]>([]);
-  const [editMap, setEditMap] = useState<Record<string, { quantidade_kg: number; observacao: string }>>({});
-  const [newRow, setNewRow] = useState({ nome_produto: '', quantidade_kg: 0, observacao: '' });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    Promise.all([fetch('/api/estoque').then(r => r.json()), fetch('/api/produtos').then(r => r.json())])
-      .then(([est, prod]) => {
-        const esArr = Array.isArray(est) ? est : [];
-        setEstoque(esArr);
-        setProdutos(Array.isArray(prod) ? prod.filter((p: ProdutoRow) => p.ativo) : []);
-        const m: Record<string, any> = {};
-        esArr.forEach((e: EstoqueRow) => { m[e.id_estoque] = { quantidade_kg: e.quantidade_kg, observacao: e.observacao }; });
-        setEditMap(m);
-        setLoading(false);
-      });
+    fetchEstoque();
   }, []);
 
-  const handleSave = async (row: EstoqueRow) => {
-    setSaving(row.id_estoque);
-    const data = editMap[row.id_estoque];
-    const res = await fetch('/api/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome_produto: row.nome_produto, ...data }) });
-    if (res.ok) {
-      const updated = await res.json();
-      setEstoque(estoque.map(e => e.id_estoque === row.id_estoque ? updated : e));
-    }
-    setSaving(null);
-  };
-
-  const handleCreate = async () => {
-    if (!newRow.nome_produto) { alert('Selecione um produto'); return; }
-    const res = await fetch('/api/estoque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newRow) });
-    if (res.ok) {
-      const result = await res.json();
-      // Upsert local state
-      const existing = estoque.find(e => e.nome_produto === newRow.nome_produto);
-      if (existing) {
-        setEstoque(estoque.map(e => e.nome_produto === newRow.nome_produto ? result : e));
-      } else {
-        setEstoque([...estoque, result]);
-        setEditMap({ ...editMap, [result.id_estoque]: { quantidade_kg: result.quantidade_kg, observacao: result.observacao } });
-      }
-      setNewRow({ nome_produto: '', quantidade_kg: 0, observacao: '' });
+  const fetchEstoque = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/estoque');
+      const data = await res.json();
+      setEstoque(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-400 animate-pulse">Carregando estoque...</div>;
+  const filteredEstoque = estoque.filter(item => 
+    item.nome_produto.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalEstoqueFisico = filteredEstoque.reduce((acc, item) => acc + Number(item.quantidade_estoque_kg), 0);
+  const totalReservado = filteredEstoque.reduce((acc, item) => acc + Number(item.quantidade_reservada_kg), 0);
+  const totalSaldo = totalEstoqueFisico - totalReservado;
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+        <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-600 font-medium animate-pulse">Consultando inventário...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="mb-8 p-6 bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl shadow-xl text-white">
-        <h1 className="text-3xl font-bold mb-1">Estoque</h1>
-        <p className="text-orange-100 text-sm">Controle de quantidade disponível por produto. Edição inline.</p>
+    <div className="flex-1 bg-gray-50 pb-20">
+      {/* Header Premium */}
+      <div className="relative bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90"></div>
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/20 rounded-full blur-3xl"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-12 lg:py-16">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-orange-500 rounded-2xl shadow-xl shadow-orange-500/20">
+                <Database className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Centro de Inventário</h1>
+                <p className="text-slate-400 mt-1 font-medium">Controle de saldo, reservas e disponibilidade física de produtos.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-2xl">
+                <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block mb-1">Físico Total</span>
+                <span className="text-white text-2xl font-black">{totalEstoqueFisico.toFixed(1)} <span className="text-sm font-normal text-slate-500">kg</span></span>
+              </div>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-2xl">
+                <span className="text-orange-400 text-[10px] font-black uppercase tracking-widest block mb-1">Reservado</span>
+                <span className="text-orange-500 text-2xl font-black">{totalReservado.toFixed(1)} <span className="text-sm font-normal text-slate-500">kg</span></span>
+              </div>
+              <div className="hidden md:block bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 p-4 rounded-2xl">
+                <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest block mb-1">Saldo Livre</span>
+                <span className="text-emerald-500 text-2xl font-black">{totalSaldo.toFixed(1)} <span className="text-sm font-normal text-slate-500">kg</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
-          <thead>
-            <tr className="bg-gray-100 text-gray-600 uppercase text-xs font-bold">
-              <th className="p-4 border-b">Produto</th>
-              <th className="p-4 border-b w-32">Físico (kg)</th>
-              <th className="p-4 border-b w-32">Reservado (kg)</th>
-              <th className="p-4 border-b w-32">Saldo (kg)</th>
-              <th className="p-4 border-b">Observação</th>
-              <th className="p-4 border-b w-40">Atualizado em</th>
-              <th className="p-4 border-b">Ação</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {estoque.map(row => {
-              const edit = editMap[row.id_estoque] ?? { quantidade_kg: row.quantidade_kg, observacao: row.observacao };
-              const changed = edit.quantidade_kg !== row.quantidade_kg || edit.observacao !== row.observacao;
-              const low = row.saldo_kg < 5;
+
+      <div className="max-w-7xl mx-auto px-6 -mt-8">
+        {/* Filtros e Ações */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Pesquisar produto no estoque..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-white border-none rounded-2xl shadow-xl shadow-slate-900/5 focus:ring-2 focus:ring-orange-500 outline-none font-medium text-gray-700"
+            />
+          </div>
+          <button 
+            onClick={fetchEstoque}
+            className="px-6 py-4 bg-white text-orange-600 font-bold rounded-2xl shadow-xl shadow-slate-900/5 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2 border border-orange-100"
+          >
+            <RefreshCw className="w-5 h-5" />
+            Sincronizar
+          </button>
+        </div>
+
+        {/* Grade de Itens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEstoque.length === 0 ? (
+            <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
+              <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">Nenhum item encontrado no estoque.</p>
+            </div>
+          ) : (
+            filteredEstoque.map(item => {
+              const saldo = Number(item.saldo_kg);
+              const isLow = saldo < 10;
+              const isNegative = saldo < 0;
+
               return (
-                <tr key={row.id_estoque} className={`hover:bg-gray-50 ${low ? 'bg-red-50/40' : ''}`}>
-                  <td className="p-4 font-semibold text-gray-800 flex items-center gap-2">
-                    {low && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" title="Saldo baixo" />}
-                    {row.nome_produto}
-                  </td>
-                  <td className="p-2">
-                    <input type="number" min="0" step="0.1" className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none text-right font-bold" value={edit.quantidade_kg} onChange={e => setEditMap({ ...editMap, [row.id_estoque]: { ...edit, quantidade_kg: Number(e.target.value) } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row)} />
-                  </td>
-                  <td className="p-4 text-sm text-right font-medium text-blue-600 bg-blue-50/30">
-                    {(row.quantidade_solicitada_kg || 0).toFixed(1)}
-                  </td>
-                  <td className={`p-4 text-sm text-right font-bold ${(row.saldo_kg || 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {(row.saldo_kg || 0).toFixed(1)}
-                  </td>
-                  <td className="p-2"><input className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none" value={edit.observacao} onChange={e => setEditMap({ ...editMap, [row.id_estoque]: { ...edit, observacao: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row)} /></td>
-                  <td className="p-4 text-xs text-gray-500">{row.data_atualizacao}</td>
-                  <td className="p-2">
-                    {changed && <button onClick={() => handleSave(row)} disabled={saving === row.id_estoque} className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">{saving === row.id_estoque ? '...' : 'Salvar'}</button>}
-                  </td>
-                </tr>
+                <div key={item.id_estoque} className="group bg-white rounded-3xl border border-gray-100 shadow-xl shadow-slate-900/5 overflow-hidden hover:border-orange-200 transition-all hover:shadow-orange-900/10">
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-orange-50 transition-colors">
+                        <Package className="w-6 h-6 text-gray-400 group-hover:text-orange-600 transition-colors" />
+                      </div>
+                      {isLow ? (
+                        <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isNegative ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                          <AlertCircle className="w-3 h-3" />
+                          {isNegative ? 'Crítico' : 'Baixo'}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-black uppercase tracking-wider">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Estável
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-xl font-extrabold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors truncate">
+                      {item.nome_produto}
+                    </h3>
+                    <p className="text-xs text-gray-400 font-medium mb-6 uppercase tracking-widest">ID: {item.id_estoque}</p>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Físico</p>
+                        <p className="text-lg font-bold text-gray-800">{item.quantidade_estoque_kg} kg</p>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Reservado</p>
+                        <p className="text-lg font-bold text-orange-600">{item.quantidade_reservada_kg} kg</p>
+                      </div>
+                    </div>
+
+                    <div className={`p-4 rounded-2xl border-2 flex items-center justify-between transition-colors ${
+                      isNegative 
+                        ? 'bg-red-50 border-red-100 text-red-700' 
+                        : isLow 
+                          ? 'bg-amber-50 border-amber-100 text-amber-700'
+                          : 'bg-emerald-50 border-emerald-100 text-emerald-700'
+                    }`}>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Saldo Disponível</p>
+                        <p className="text-2xl font-black">{item.saldo_kg} kg</p>
+                      </div>
+                      <BarChart3 className="w-8 h-8 opacity-20" />
+                    </div>
+                  </div>
+                  
+                  {item.observacao && (
+                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
+                      <Info className="w-4 h-4 text-gray-400 shrink-0" />
+                      <p className="text-xs text-gray-500 font-medium truncate italic">
+                        {item.observacao}
+                      </p>
+                    </div>
+                  )}
+                </div>
               );
-            })}
-            <tr className="bg-orange-50/60 border-t-4 border-orange-200">
-              <td className="p-2">
-                <select className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" value={newRow.nome_produto} onChange={e => setNewRow({ ...newRow, nome_produto: e.target.value })}>
-                  <option value="">Selecione o produto...</option>
-                  {produtos.filter(p => !estoque.find(e => e.nome_produto === p.nome_produto)).map(p => <option key={p.id_produto} value={p.nome_produto}>{p.nome_produto}</option>)}
-                </select>
-              </td>
-              <td className="p-2"><input type="number" min="0" step="0.1" className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white text-right font-bold" placeholder="0" value={newRow.quantidade_kg || ''} onChange={e => setNewRow({ ...newRow, quantidade_kg: Number(e.target.value) })} /></td>
-              <td className="p-4 text-center text-gray-400">-</td>
-              <td className="p-4 text-center text-gray-400">-</td>
-              <td className="p-2"><input className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white" placeholder="Observação..." value={newRow.observacao} onChange={e => setNewRow({ ...newRow, observacao: e.target.value })} /></td>
-              <td className="p-4 text-xs text-gray-400 italic">Hoje</td>
-              <td className="p-2"><button onClick={handleCreate} className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold w-full">+ Adicionar</button></td>
-            </tr>
-          </tbody>
-        </table>
+            })
+          )}
+        </div>
       </div>
     </div>
   );

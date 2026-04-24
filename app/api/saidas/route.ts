@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSaidaRow, getSaidasRows } from '@/lib/saidasSheets';
+import { processarSaidaEstoquePorPedido } from '@/lib/estoqueSheets';
 import { SaidaInput } from '@/types/saidas';
 
 export async function GET() {
@@ -21,6 +22,10 @@ export async function POST(req: NextRequest) {
     }
 
     const row = await createSaidaRow(body);
+    
+    // Processa a saída do estoque (baixa do físico e do reservado)
+    await processarSaidaEstoquePorPedido(body.tipo);
+
     return NextResponse.json({ success: true, row }, { status: 201 });
   } catch (err) {
     console.error('[POST /api/saidas]', err);

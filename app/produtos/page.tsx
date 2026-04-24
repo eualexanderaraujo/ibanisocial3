@@ -1,269 +1,317 @@
 'use client';
+
 import { useState, useEffect } from 'react';
-import { ProdutoRow } from '@/types/produto';
+import { ProdutoRow, ProdutoInput } from '@/types/produto';
+import { Package, Plus, Save, Trash2, Search, Filter, Info, ShoppingBasket, Layers } from 'lucide-react';
 
-const BLANK = { nome_produto: '', unidade: 'kg' as 'kg' | 'un', ativo: true, adultos_kg: 0, kids_kg: 0 };
-
-export default function ProdutosPage() {
-  const [rows, setRows] = useState<ProdutoRow[]>([]);
-  const [editMap, setEditMap] = useState<Record<string, ProdutoRow>>({});
-  const [newRow, setNewRow] = useState({ ...BLANK });
+export default function ProdutosAdminPage() {
+  const [produtos, setProdutos] = useState<ProdutoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [seeding, setSeeding] = useState(false);
-  const [seedMsg, setSeedMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Estado para novo produto
+  const [newProduct, setNewProduct] = useState<ProdutoInput>({
+    nome_produto: '',
+    quantidade_kg: 0,
+    tipo_cesta: 'Adulto/Kids'
+  });
 
-  const fetchProdutos = () => {
+  useEffect(() => {
+    fetchProdutos();
+  }, []);
+
+  const fetchProdutos = async () => {
     setLoading(true);
-    fetch('/api/produtos').then(r => r.json()).then(data => {
-      const arr = Array.isArray(data) ? data : [];
-      setRows(arr);
-      const m: Record<string, ProdutoRow> = {};
-      arr.forEach((r: ProdutoRow) => { m[r.id_produto] = { ...r }; });
-      setEditMap(m);
+    try {
+      const res = await fetch('/api/produtos');
+      const data = await res.json();
+      setProdutos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-    });
-  };
-
-  useEffect(() => { fetchProdutos(); }, []);
-
-  const handleSave = async (id: string) => {
-    setSaving(id);
-    const res = await fetch(`/api/produtos/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editMap[id]),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setRows(rows.map(r => r.id_produto === id ? updated : r));
-      setEditMap(prev => ({ ...prev, [id]: updated }));
     }
-    setSaving(null);
   };
 
   const handleCreate = async () => {
-    if (!newRow.nome_produto) { alert('Nome é obrigatório'); return; }
-    const res = await fetch('/api/produtos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newRow),
-    });
-    if (res.ok) {
-      const created = await res.json();
-      setRows([...rows, created]);
-      setEditMap({ ...editMap, [created.id_produto]: { ...created } });
-      setNewRow({ ...BLANK });
-    }
-  };
-
-  const handleSeed = async () => {
-    if (!confirm('Isso vai popular/atualizar todos os produtos com as quantidades padrão (Kids e Adulto). Deseja continuar?')) return;
-    setSeeding(true);
-    setSeedMsg(null);
+    if (!newProduct.nome_produto) return;
+    setSaving('new');
     try {
-      const res = await fetch('/api/produtos/seed', { method: 'POST' });
-      const data = await res.json();
+      const res = await fetch('/api/produtos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct)
+      });
       if (res.ok) {
-        setSeedMsg({ type: 'success', text: `✅ Produtos atualizados: ${data.updated} | Criados: ${data.created}` });
-        fetchProdutos();
-      } else {
-        setSeedMsg({ type: 'error', text: `❌ Erro: ${data.error}` });
+        await fetchProdutos();
+        setNewProduct({ nome_produto: '', quantidade_kg: 0, tipo_cesta: 'Adulto/Kids' });
       }
-    } catch {
-      setSeedMsg({ type: 'error', text: '❌ Falha na requisição' });
     } finally {
-      setSeeding(false);
+      setSaving(null);
     }
   };
 
-  const updateEdit = (id: string, field: keyof ProdutoRow, value: string | boolean | number) => {
-    setEditMap(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
+  const handleUpdate = async (id: string, updated: Partial<ProdutoInput>) => {
+    setSaving(id);
+    try {
+      const res = await fetch(`/api/produtos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      if (res.ok) {
+        setProdutos(produtos.map(p => p.id_produto === id ? { ...p, ...updated } : p));
+      }
+    } finally {
+      setSaving(null);
+    }
   };
 
-  const isChanged = (id: string) => {
-    const orig = rows.find(r => r.id_produto === id);
-    return orig ? JSON.stringify(editMap[id]) !== JSON.stringify(orig) : false;
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este item? Isso pode afetar os cálculos de reserva.')) return;
+    setSaving(id);
+    try {
+      const res = await fetch(`/api/produtos/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setProdutos(produtos.filter(p => p.id_produto !== id));
+      }
+    } finally {
+      setSaving(null);
+    }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-400 animate-pulse">Carregando produtos...</div>;
+  const filteredProdutos = produtos.filter(p => 
+    p.nome_produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.tipo_cesta.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+        <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-600 font-medium animate-pulse">Sincronizando com Google Sheets...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 md:p-8">
-      {/* Header */}
-      <div className="mb-6 p-6 bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl shadow-xl text-white flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold mb-1">Produtos</h1>
-          <p className="text-orange-100 text-sm">Catálogo de itens e quantidades padrão por tipo de cesta.</p>
+    <div className="flex-1 bg-gray-50 pb-20">
+      {/* Header Premium com Gradiente e Glassmorphism */}
+      <div className="relative bg-orange-600 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-800 opacity-90"></div>
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-orange-400/20 rounded-full blur-2xl"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-12 lg:py-16">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl">
+                <ShoppingBasket className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Composição de Cestas</h1>
+                <p className="text-orange-100 mt-1 font-medium max-w-md">
+                  Configure os itens e as quantidades (kg) que compõem cada tipo de cesta básica.
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
+              <span className="text-orange-100 text-sm block font-bold uppercase tracking-wider">Itens Totais</span>
+              <span className="text-white text-3xl font-black">{produtos.length}</span>
+            </div>
+          </div>
         </div>
-        <button
-          onClick={handleSeed}
-          disabled={seeding}
-          className="bg-white text-orange-600 font-bold px-4 py-2 rounded-xl text-sm shadow hover:bg-orange-50 transition disabled:opacity-60 whitespace-nowrap"
-        >
-          {seeding ? '⏳ Populando...' : '📦 Popular Quantidades Padrão'}
-        </button>
       </div>
 
-      {/* Seed feedback */}
-      {seedMsg && (
-        <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium ${seedMsg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {seedMsg.text}
+      <div className="max-w-7xl mx-auto px-6 -mt-8">
+        {/* Barra de Pesquisa e Filtros */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/5 p-6 mb-8 border border-gray-100 flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Buscar por nome ou tipo de cesta..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-700"
+            />
+          </div>
+          <button className="px-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition-colors flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filtros
+          </button>
         </div>
-      )}
 
-      {/* Legenda */}
-      <div className="mb-4 bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-700">
-        <strong>ℹ️ Como funciona:</strong> As colunas <em>Adulto (kg)</em> e <em>Kids (kg)</em> definem a quantidade reservada em estoque por produto quando um novo pedido é registrado. Use o botão <strong>"Popular Quantidades Padrão"</strong> para configurar os valores canônicos de uma vez.
-      </div>
-
-      {/* Tabela */}
-      <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[700px]">
-          <thead>
-            <tr className="bg-gray-100 text-gray-600 uppercase text-xs font-bold">
-              <th className="p-4 border-b">Produto</th>
-              <th className="p-4 border-b text-center">Unidade</th>
-              <th className="p-4 border-b text-center">Ativo</th>
-              <th className="p-4 border-b text-right text-orange-600">Adulto (kg)</th>
-              <th className="p-4 border-b text-right text-blue-600">Kids (kg)</th>
-              <th className="p-4 border-b text-center">Ação</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {rows.map(row => {
-              const edit = editMap[row.id_produto] ?? row;
-              const changed = isChanged(row.id_produto);
-              return (
-                <tr key={row.id_produto} className={`hover:bg-gray-50 ${!row.ativo ? 'opacity-50' : ''}`}>
-                  {/* Nome */}
-                  <td className="p-2">
-                    <input
-                      className="w-full p-2 text-sm border rounded-lg focus:ring-orange-400 focus:outline-none"
-                      value={edit.nome_produto}
-                      onChange={e => updateEdit(row.id_produto, 'nome_produto', e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_produto)}
-                    />
-                  </td>
-                  {/* Unidade */}
-                  <td className="p-2 text-center">
-                    <select
-                      className="p-2 text-sm border rounded-lg bg-white"
-                      value={edit.unidade}
-                      onChange={e => updateEdit(row.id_produto, 'unidade', e.target.value)}
-                    >
-                      <option value="kg">kg</option>
-                      <option value="un">un</option>
-                    </select>
-                  </td>
-                  {/* Ativo */}
-                  <td className="p-2 text-center">
-                    <input
-                      type="checkbox"
-                      checked={edit.ativo}
-                      className="w-4 h-4 accent-orange-500"
-                      onChange={e => updateEdit(row.id_produto, 'ativo', e.target.checked)}
-                    />
-                  </td>
-                  {/* Adulto */}
-                  <td className="p-2">
-                    <input
-                      type="number"
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Formulário de Novo Produto */}
+          <div className="xl:col-span-1">
+            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/5 overflow-hidden border border-gray-100 sticky top-8">
+              <div className="bg-gray-50 px-8 py-6 border-b border-gray-100">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                  <Plus className="w-6 h-6 text-orange-600" />
+                  Novo Item
+                </h2>
+                <p className="text-gray-500 text-sm mt-1">Adicione um novo produto à lista de composição.</p>
+              </div>
+              
+              <div className="p-8 space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Nome do Produto</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Arroz, Feijão..."
+                    value={newProduct.nome_produto}
+                    onChange={(e) => setNewProduct({...newProduct, nome_produto: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Quantidade por Cesta (kg)</label>
+                  <div className="relative">
+                    <input 
+                      type="number" 
                       step="0.01"
-                      min="0"
-                      className="w-full p-2 text-sm border rounded-lg text-right focus:ring-orange-400 focus:outline-none"
-                      value={edit.adultos_kg ?? 0}
-                      onChange={e => updateEdit(row.id_produto, 'adultos_kg', parseFloat(e.target.value) || 0)}
+                      placeholder="0.00"
+                      value={newProduct.quantidade_kg}
+                      onChange={(e) => setNewProduct({...newProduct, quantidade_kg: parseFloat(e.target.value) || 0})}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
                     />
-                  </td>
-                  {/* Kids */}
-                  <td className="p-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      className="w-full p-2 text-sm border rounded-lg text-right focus:ring-blue-400 focus:outline-none"
-                      value={edit.kids_kg ?? 0}
-                      onChange={e => updateEdit(row.id_produto, 'kids_kg', parseFloat(e.target.value) || 0)}
-                    />
-                  </td>
-                  {/* Ação */}
-                  <td className="p-2 text-center">
-                    {changed && (
-                      <button
-                        onClick={() => handleSave(row.id_produto)}
-                        disabled={saving === row.id_produto}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold"
-                      >
-                        {saving === row.id_produto ? '...' : 'Salvar'}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">KG</span>
+                  </div>
+                </div>
 
-            {/* Linha de adição */}
-            <tr className="bg-orange-50/60 border-t-4 border-orange-200">
-              <td className="p-2">
-                <input
-                  className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white"
-                  placeholder="Ex: Arroz, Feijão..."
-                  value={newRow.nome_produto}
-                  onChange={e => setNewRow({ ...newRow, nome_produto: e.target.value })}
-                />
-              </td>
-              <td className="p-2">
-                <select
-                  className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg bg-white"
-                  value={newRow.unidade}
-                  onChange={e => setNewRow({ ...newRow, unidade: e.target.value as 'kg' | 'un' })}
-                >
-                  <option value="kg">kg</option>
-                  <option value="un">un</option>
-                </select>
-              </td>
-              <td className="p-2 text-center">
-                <input
-                  type="checkbox"
-                  checked={newRow.ativo}
-                  className="w-4 h-4 accent-orange-500"
-                  onChange={e => setNewRow({ ...newRow, ativo: e.target.checked })}
-                />
-              </td>
-              <td className="p-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg text-right"
-                  placeholder="0"
-                  value={newRow.adultos_kg}
-                  onChange={e => setNewRow({ ...newRow, adultos_kg: parseFloat(e.target.value) || 0 })}
-                />
-              </td>
-              <td className="p-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="w-full p-2 text-sm border-2 border-orange-300 rounded-lg text-right"
-                  placeholder="0"
-                  value={newRow.kids_kg}
-                  onChange={e => setNewRow({ ...newRow, kids_kg: parseFloat(e.target.value) || 0 })}
-                />
-              </td>
-              <td className="p-2">
-                <button
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Atende ao Tipo de Cesta</label>
+                  <select 
+                    value={newProduct.tipo_cesta}
+                    onChange={(e) => setNewProduct({...newProduct, tipo_cesta: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-bold text-gray-700 appearance-none"
+                  >
+                    <option value="Adulto/Kids">Ambas (Adulto e Kids)</option>
+                    <option value="Adulto">Apenas Adulto</option>
+                    <option value="Kids">Apenas Kids</option>
+                  </select>
+                </div>
+
+                <button 
                   onClick={handleCreate}
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold w-full"
+                  disabled={!newProduct.nome_produto || saving === 'new'}
+                  className="w-full py-4 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 text-white font-black rounded-2xl transition-all shadow-lg shadow-orange-600/20 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                 >
-                  + Adicionar
+                  {saving === 'new' ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <Save className="w-5 h-5" />
+                  )}
+                  Salvar Produto
                 </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+              
+              <div className="px-8 py-6 bg-orange-50 border-t border-orange-100">
+                <div className="flex gap-3">
+                  <Info className="w-5 h-5 text-orange-600 shrink-0" />
+                  <p className="text-xs text-orange-800 leading-relaxed font-medium">
+                    Ao salvar, este item passará a ser reservado automaticamente em cada novo pedido registrado no sistema.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Lista de Produtos */}
+          <div className="xl:col-span-2">
+            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/5 overflow-hidden border border-gray-100">
+              <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                  <Layers className="w-6 h-6 text-orange-600" />
+                  Itens Cadastrados
+                </h2>
+                <div className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+                  {filteredProdutos.length} exibidos
+                </div>
+              </div>
+              
+              <div className="divide-y divide-gray-100">
+                {filteredProdutos.length === 0 ? (
+                  <div className="p-20 text-center">
+                    <div className="inline-flex p-6 bg-gray-50 rounded-full mb-4">
+                      <Search className="w-10 h-10 text-gray-300" />
+                    </div>
+                    <p className="text-gray-500 font-medium">Nenhum produto encontrado com estes termos.</p>
+                  </div>
+                ) : (
+                  filteredProdutos.map(produto => (
+                    <div key={produto.id_produto} className="group p-6 hover:bg-orange-50/30 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                        <div className="flex-1">
+                          <input 
+                            type="text" 
+                            defaultValue={produto.nome_produto}
+                            onBlur={(e) => {
+                              if (e.target.value !== produto.nome_produto) {
+                                handleUpdate(produto.id_produto, { nome_produto: e.target.value });
+                              }
+                            }}
+                            className="text-lg font-bold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none w-full p-0 cursor-text group-hover:text-orange-700 transition-colors"
+                          />
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 shadow-sm">
+                              <ShoppingBasket className="w-3.5 h-3.5 text-orange-500" />
+                              {produto.quantidade_kg} kg / cesta
+                            </span>
+                            <span className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm border ${
+                              produto.tipo_cesta.includes('Adulto') && produto.tipo_cesta.includes('Kids')
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                                : produto.tipo_cesta === 'Adulto'
+                                  ? 'bg-orange-50 text-orange-700 border-orange-100'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            }`}>
+                              {produto.tipo_cesta}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col items-end">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Qtd (KG)</label>
+                            <input 
+                              type="number" 
+                              step="0.01"
+                              defaultValue={produto.quantidade_kg}
+                              onBlur={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                if (val !== produto.quantidade_kg) {
+                                  handleUpdate(produto.id_produto, { quantidade_kg: val });
+                                }
+                              }}
+                              className="w-24 text-right px-3 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white font-bold text-gray-800 outline-none"
+                            />
+                          </div>
+
+                          <button 
+                            onClick={() => handleDelete(produto.id_produto)}
+                            disabled={saving === produto.id_produto}
+                            className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                            title="Remover produto"
+                          >
+                            {saving === produto.id_produto ? (
+                              <div className="w-5 h-5 border-2 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+                            ) : (
+                              <Trash2 className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

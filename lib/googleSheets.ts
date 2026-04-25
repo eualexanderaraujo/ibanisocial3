@@ -152,35 +152,33 @@ function mapLegacyRow(row: string[]): CadastroRow {
     telefone_supervisor: row[8] ?? '',
     beneficiado: row[9] ?? '',
     telefone: row[10] ?? '',
-    total_pessoas: parseNumber(row[12] ?? ''),
-    adultos: parseNumber(row[13] ?? ''),
-    criancas: parseNumber(row[14] ?? ''),
-    adolescentes: parseNumber(row[15] ?? ''),
-    idosos: parseNumber(row[16] ?? ''),
-    trabalham: parseNumber(row[17] ?? '0'),
-    tipo_renda: row[18] ?? '',
-    faixa_renda: row[19] ?? '',
-    problemas: parseList(row[20] ?? ''),
-    observacao: '',
+    total_pessoas: parseNumber(row[11] ?? ''),
+    adultos: parseNumber(row[12] ?? ''),
+    criancas: parseNumber(row[13] ?? ''),
+    adolescentes: parseNumber(row[14] ?? ''),
+    idosos: parseNumber(row[15] ?? ''),
+    trabalham: parseNumber(row[16] ?? '0'),
+    tipo_renda: row[17] ?? '',
+    faixa_renda: row[18] ?? '',
+    problemas: parseList(row[19] ?? ''),
+    observacao: row[20] ?? '',
   };
 
-  const priority = calculatePriority(input);
-  const data = row[1] ?? '';
-  const displayDate = row[1] ?? '';
+  const priority = normalizePriority(row[21] ?? '', row[22] ?? '', row[23] ?? '', input);
 
   return {
     id_pedido: row[0] ?? '',
-    protocolo: row[0] ?? '',
-    tipo_cesta: getTipoCesta(input.criancas),
-    data: displayDate,
+    data: row[1] ?? '',
     ...input,
     prioridade_score: priority.score,
     prioridade_label: priority.label,
     prioridade_motivos: priority.reasons,
-    status: 'novo',
-    observacoes_internas: '',
-    atualizado_em: '',
-    atualizado_em_iso: '',
+    status: (row[24] as CaseStatus) || 'novo',
+    observacoes_internas: row[25] ?? '',
+    atualizado_em: row[26] ?? '',
+    atualizado_em_iso: row[27] ?? '',
+    protocolo: row[28] ?? row[0] ?? '',
+    tipo_cesta: (row[29] as 'Kids' | 'Adulto') || getTipoCesta(input.criancas),
   };
 }
 
@@ -240,7 +238,7 @@ async function getSheetValues() {
   const spreadsheetId = getSpreadsheetId();
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:AD`,
+    range: `${SHEET_NAME}!A:AE`,
   });
 
   return {

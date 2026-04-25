@@ -118,14 +118,14 @@ export default function EstoquePage() {
               <p className="text-gray-500 font-medium">Nenhum item encontrado no estoque.</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white uppercase text-[11px] font-bold tracking-wider">
-                  <th className="px-6 py-4">Produto</th>
-                  <th className="px-6 py-4 text-right">Físico (kg)</th>
-                  <th className="px-6 py-4 text-right">Reservado (kg)</th>
-                  <th className="px-6 py-4 text-right">Saldo (kg)</th>
-                  <th className="px-6 py-4 text-center">Status</th>
+                <tr className="bg-slate-900 text-white uppercase text-[10px] sm:text-[11px] font-bold tracking-wider">
+                  <th className="px-2 sm:px-4 py-4">Produto</th>
+                  <th className="px-2 sm:px-4 py-4 text-right">Físico</th>
+                  <th className="px-2 sm:px-4 py-4 text-right">Reserv.</th>
+                  <th className="px-2 sm:px-4 py-4 text-right">Saldo</th>
+                  <th className="px-2 sm:px-4 py-4 text-center">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -154,46 +154,46 @@ export default function EstoquePage() {
                       className={`group transition-colors hover:bg-orange-50/40 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
                     >
                       {/* Produto */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-slate-100 group-hover:bg-orange-100 rounded-xl flex items-center justify-center transition-colors shrink-0">
+                      <td className="px-2 sm:px-4 py-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="hidden sm:flex w-8 h-8 bg-slate-100 group-hover:bg-orange-100 rounded-xl items-center justify-center transition-colors shrink-0">
                             <Package className="w-4 h-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-gray-800 truncate group-hover:text-orange-600 transition-colors">
+                          <div className="min-w-0 max-w-[120px] sm:max-w-none">
+                            <p className="text-xs sm:text-sm font-bold text-gray-800 truncate group-hover:text-orange-600 transition-colors">
                               {item.nome_produto}
                             </p>
-                            <p className="text-[10px] text-gray-400 font-mono uppercase">{item.id_estoque}</p>
+                            <p className="text-[9px] sm:text-[10px] text-gray-400 font-mono uppercase truncate">{item.id_estoque}</p>
                           </div>
                         </div>
                       </td>
 
                       {/* Físico */}
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-sm font-semibold text-gray-700">
+                      <td className="px-2 sm:px-4 py-4 text-right">
+                        <span className="text-xs sm:text-sm font-semibold text-gray-700">
                           {Number(item.quantidade_estoque_kg).toFixed(1)}
                         </span>
-                        <span className="text-xs text-gray-400 ml-1">kg</span>
+                        <span className="hidden sm:inline text-xs text-gray-400 ml-1">kg</span>
                       </td>
 
                       {/* Reservado */}
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-sm font-semibold text-orange-600">
+                      <td className="px-2 sm:px-4 py-4 text-right">
+                        <span className="text-xs sm:text-sm font-semibold text-orange-600">
                           {Number(item.quantidade_reservada_kg).toFixed(1)}
                         </span>
-                        <span className="text-xs text-gray-400 ml-1">kg</span>
+                        <span className="hidden sm:inline text-xs text-gray-400 ml-1">kg</span>
                       </td>
 
                       {/* Saldo */}
-                      <td className="px-6 py-4 text-right">
-                        <span className={`text-sm font-black ${isNegative ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      <td className="px-2 sm:px-4 py-4 text-right">
+                        <span className={`text-xs sm:text-sm font-black ${isNegative ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-emerald-600'}`}>
                           {Number(item.saldo_kg).toFixed(1)}
                         </span>
-                        <span className="text-xs text-gray-400 ml-1">kg</span>
+                        <span className="hidden sm:inline text-xs text-gray-400 ml-1">kg</span>
                       </td>
 
                       {/* Status */}
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-2 sm:px-4 py-4 text-center">
                         {statusBadge}
                       </td>
                     </tr>
@@ -203,21 +203,19 @@ export default function EstoquePage() {
 
               {/* Totais */}
               <tfoot>
-                <tr className="bg-slate-900/5 border-t-2 border-slate-200 font-bold text-sm">
-                  <td className="px-6 py-3 text-gray-500 uppercase text-[11px] tracking-wider">
-                    {filteredEstoque.length} produto(s)
+                <tr className="bg-slate-900/5 border-t-2 border-slate-200 font-bold text-xs sm:text-sm">
+                  <td className="px-2 sm:px-4 py-3 text-gray-500 uppercase text-[10px] sm:text-[11px] tracking-wider">
+                    <span className="hidden sm:inline">{filteredEstoque.length} produto(s)</span>
+                    <span className="sm:hidden">{filteredEstoque.length} prod.</span>
                   </td>
-                  <td className="px-6 py-3 text-right text-gray-700">
+                  <td className="px-2 sm:px-4 py-3 text-right text-gray-700">
                     {filteredEstoque.reduce((a, i) => a + Number(i.quantidade_estoque_kg), 0).toFixed(1)}
-                    <span className="text-xs text-gray-400 ml-1">kg</span>
                   </td>
-                  <td className="px-6 py-3 text-right text-orange-600">
+                  <td className="px-2 sm:px-4 py-3 text-right text-orange-600">
                     {filteredEstoque.reduce((a, i) => a + Number(i.quantidade_reservada_kg), 0).toFixed(1)}
-                    <span className="text-xs text-gray-400 ml-1">kg</span>
                   </td>
-                  <td className="px-6 py-3 text-right text-emerald-600">
+                  <td className="px-2 sm:px-4 py-3 text-right text-emerald-600">
                     {filteredEstoque.reduce((a, i) => a + Number(i.saldo_kg), 0).toFixed(1)}
-                    <span className="text-xs text-gray-400 ml-1">kg</span>
                   </td>
                   <td />
                 </tr>

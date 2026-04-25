@@ -267,7 +267,7 @@ export default function EntregasPage() {
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/5 overflow-hidden border border-gray-100">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead>
                     <tr className="bg-gray-50 text-gray-400 uppercase text-[10px] font-black tracking-widest">
                       <th className="px-6 py-4">Beneficiário</th>

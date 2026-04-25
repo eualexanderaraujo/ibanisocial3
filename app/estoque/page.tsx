@@ -111,14 +111,14 @@ export default function EstoquePage() {
         </div>
 
         {/* Lista de Itens */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-900/5 border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-900/5 border border-gray-100 overflow-x-auto">
           {filteredEstoque.length === 0 ? (
             <div className="py-20 text-center">
               <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 font-medium">Nenhum item encontrado no estoque.</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-slate-900 text-white uppercase text-[11px] font-bold tracking-wider">
                   <th className="px-6 py-4">Produto</th>

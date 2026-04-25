@@ -272,7 +272,7 @@ export default function AnalisesPage() {
 
         {/* ── Linha 3: Renda ────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <Section title="Tipo de Renda das Famílias" icon={<TrendingUp className="w-5 h-5" />}>
+          <Section title="Faixa de Renda" icon={<TrendingUp className="w-5 h-5" />}>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={pedidos.tipoRenda} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -287,7 +287,7 @@ export default function AnalisesPage() {
               </BarChart>
             </ResponsiveContainer>
           </Section>
-          <Section title="Faixa de Renda" icon={<TrendingUp className="w-5 h-5" />}>
+          <Section title="Tipo de Renda das Famílias" icon={<TrendingUp className="w-5 h-5" />}>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={pedidos.faixaRenda} dataKey="count" nameKey="label" cx="50%" cy="50%" outerRadius={80}>
@@ -316,12 +316,12 @@ export default function AnalisesPage() {
           </Section>
           <Section title="Pedidos por Rede" icon={<BarChart2 className="w-5 h-5" />}>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={pedidos.pedidosPorRede} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="label" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 11 }} />
+              <BarChart data={pedidos.pedidosPorRede} layout="vertical" margin={{ left: 10, right: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="label" tick={{ fontSize: 11 }} width={80} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="count" name="Pedidos" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="count" name="Pedidos" radius={[0, 6, 6, 0]}>
                   {pedidos.pedidosPorRede.map((_, i) => (
                     <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                   ))}
@@ -336,7 +336,21 @@ export default function AnalisesPage() {
           <Section title="Kg Doados por Rede" icon={<Heart className="w-5 h-5" />}>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={doacoes.kgPorRede} dataKey="total" nameKey="label" cx="50%" cy="50%" outerRadius={80} label={({ label, percent }) => `${label} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                <Pie 
+                  data={doacoes.kgPorRede} 
+                  dataKey="total" 
+                  nameKey="label" 
+                  cx="50%" 
+                  cy="50%" 
+                  outerRadius={70} 
+                  labelLine={false}
+                  label={({ cx, x, y, name, percent, value }) => (
+                    <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11}>
+                      <tspan x={x} dy="-0.5em" fontWeight="bold">{name} {(percent * 100).toFixed(0)}%</tspan>
+                      <tspan x={x} dy="1.2em" fill="#f97316">{value} kg</tspan>
+                    </text>
+                  )}
+                >
                   {doacoes.kgPorRede.map((_, i) => (
                     <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                   ))}

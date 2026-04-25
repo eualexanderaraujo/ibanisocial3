@@ -4,34 +4,36 @@ import { useState, useEffect } from 'react';
 import { CelulaRow } from '@/types/celula';
 import { CadastroFormData, getTipoCesta } from '@/lib/schema';
 
+const initialFormState = {
+  celula: '',
+  rede: '',
+  lider: '',
+  telefone_lider: '',
+  supervisor: '',
+  telefone_supervisor: '',
+  email: '',
+  beneficiado: '',
+  telefone: '',
+  total_pessoas: 0,
+  adultos: 0,
+  criancas: 0,
+  adolescentes: 0,
+  idosos: 0,
+  trabalham: 'Não',
+  tipo_renda: '',
+  faixa_renda: '',
+  problemas: '',
+  observacao: '',
+  tipo_cesta: 'Adulto' as 'Adulto' | 'Kids',
+};
+
 export default function PedidosPage() {
   const [celulas, setCelulas] = useState<CelulaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<{ id: string; protocolo: string } | null>(null);
 
-  const [formData, setFormData] = useState({
-    celula: '',
-    rede: '',
-    lider: '',
-    telefone_lider: '',
-    supervisor: '',
-    telefone_supervisor: '',
-    email: '',
-    beneficiado: '',
-    telefone: '',
-    total_pessoas: 0,
-    adultos: 0,
-    criancas: 0,
-    adolescentes: 0,
-    idosos: 0,
-    trabalham: 'Não',
-    tipo_renda: '',
-    faixa_renda: '',
-    problemas: '',
-    observacao: '',
-    tipo_cesta: 'Adulto' as 'Adulto' | 'Kids',
-  });
+  const [formData, setFormData] = useState({ ...initialFormState });
 
   useEffect(() => {
     fetch('/api/celulas')
@@ -130,11 +132,14 @@ export default function PedidosPage() {
 
       <div className="max-w-4xl mx-auto px-4">
         {success ? (
-          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-8 rounded-xl shadow-md mb-8 animate-bounce">
+          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-8 rounded-xl shadow-md mb-8">
             <h2 className="text-2xl font-bold mb-2">Pedido Realizado com Sucesso!</h2>
             <p className="text-lg">Protocolo: <span className="font-mono font-bold bg-white px-2 py-1 rounded">{success.protocolo}</span></p>
             <button 
-              onClick={() => setSuccess(null)}
+              onClick={() => {
+                setSuccess(null);
+                setFormData({ ...initialFormState });
+              }}
               className="mt-6 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
               Fazer Novo Pedido

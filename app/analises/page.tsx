@@ -143,7 +143,7 @@ export default function AnalisesPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-8">
 
         {/* ── KPIs Gerais ───────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

@@ -4,8 +4,7 @@ import { incrementarEstoquePorNome } from '@/lib/estoqueSheets';
 import { v4 as uuidv4 } from 'uuid';
 
 const SHEET_NAME = 'doacoes';
-// Coluna G agora inclui data (ISO)
-const HEADERS = ['id_doacao', 'data', 'Rede', 'Celula', 'Produto', 'Quantidade (kg)', 'Observacoes'] as const;
+const HEADERS = ['id_doacao', 'Rede', 'Celula', 'Produto', 'Quantidade (kg)', 'Observacoes', 'Data_doacao'] as const;
 
 async function getSheetValues() {
   const sheets = await getSheets();
@@ -17,7 +16,6 @@ async function getSheetValues() {
 async function ensureHeaders() {
   const { sheets, spreadsheetId, values } = await getSheetValues();
   const firstRow = values[0] ?? [];
-  // Sempre garantir que 'data' existe como segunda coluna
   if (firstRow.length === 0 || !firstRow.includes('id_doacao')) {
     await sheets.spreadsheets.values.update({
       spreadsheetId, range: `${SHEET_NAME}!A1`, valueInputOption: 'RAW',
@@ -27,31 +25,14 @@ async function ensureHeaders() {
 }
 
 function mapRow(row: string[]): DoacaoRow {
-  // Suporte a registros legados (sem campo data na coluna B)
-  const hasDate = row.length >= 7 || /^\d{4}-\d{2}-\d{2}/.test(row[1] ?? '');
-
-  if (hasDate && row.length >= 7) {
-    // Novo formato: id | data | rede | celula | produto | quantidade | obs
-    return {
-      id_doacao: String(row[0] ?? '').trim(),
-      data: String(row[1] ?? '').trim(),
-      rede: String(row[2] ?? '').trim(),
-      celula: String(row[3] ?? '').trim(),
-      nome_produto: String(row[4] ?? '').trim(),
-      quantidade_kg: Number(row[5] ?? 0),
-      observacao: String(row[6] ?? '').trim(),
-    };
-  }
-
-  // Formato legado: id | rede | celula | produto | quantidade | obs
   return {
     id_doacao: String(row[0] ?? '').trim(),
-    data: '',
     rede: String(row[1] ?? '').trim(),
     celula: String(row[2] ?? '').trim(),
     nome_produto: String(row[3] ?? '').trim(),
     quantidade_kg: Number(row[4] ?? 0),
     observacao: String(row[5] ?? '').trim(),
+    data_doacao: String(row[6] ?? '').trim(),
   };
 }
 
@@ -72,14 +53,14 @@ export async function appendDoacao(data: DoacaoInput, sharedId?: string): Promis
 
   const row: DoacaoRow = {
     id_doacao,
-    data: timestamp.iso,
+    data_doacao: timestamp.iso,
     ...data,
   };
 
-  // 1. Salva na planilha de doações (novo formato com data na col B)
+  // 1. Salva na planilha de doações
   await sheets.spreadsheets.values.append({
     spreadsheetId, range: `${SHEET_NAME}!A:G`, valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [[row.id_doacao, row.data, row.rede, row.celula, row.nome_produto, row.quantidade_kg, row.observacao]] },
+    requestBody: { values: [[row.id_doacao, row.rede, row.celula, row.nome_produto, row.quantidade_kg, row.observacao, row.data_doacao]] },
   });
 
   // 2. Incrementa o estoque

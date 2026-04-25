@@ -84,7 +84,7 @@ function buildTimeSeries(
   const matrix: Map<string, Map<string, number>> = new Map();
 
   for (const d of doacoes) {
-    const iso = getIso(d.data ?? '');
+    const iso = getIso(d.data_doacao ?? '');
     if (!iso) continue;
     const key = toKey(iso);
     if (!key) continue;

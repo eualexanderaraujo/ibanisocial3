@@ -154,54 +154,90 @@ export default function AnalisesPage() {
           <KPI icon={<AlertTriangle className="w-6 h-6 text-white" />} label="Sem renda" value={`${pctSemRenda}%`} sub={`${pedidos.semRenda} famílias`} color="bg-red-500" />
         </div>
 
-        {/* ── Linhas do Tempo: Doações (kg) ─────────────────────────── */}
-        <Section title="Volume de Doações no Tempo (kg)" icon={<TrendingUp className="w-5 h-5" />}>
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="flex bg-slate-100 p-1 rounded-lg">
-              <button 
-                onClick={() => setEscalaTempo('semana')}
-                className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${escalaTempo === 'semana' ? 'bg-white text-orange-600 shadow' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Semanal
-              </button>
-              <button 
-                onClick={() => setEscalaTempo('mes')}
-                className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${escalaTempo === 'mes' ? 'bg-white text-orange-600 shadow' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Mensal
-              </button>
-            </div>
-            
-            <select 
-              value={redeFiltro}
-              onChange={(e) => setRedeFiltro(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-lg px-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="Todas">Todas as Redes</option>
-              {doacoes.redes.map(r => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
+        {/* ── Comparações de Doações ─────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <Section title="Doações por Rede (Geral)" icon={<Heart className="w-5 h-5" />}>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie 
+                    data={doacoes.kgPorRede} 
+                    dataKey="total" 
+                    nameKey="label" 
+                    cx="50%" 
+                    cy="50%" 
+                    outerRadius={90} 
+                    labelLine={false}
+                    label={({ cx, x, y, name, percent, value }) => (
+                      <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11}>
+                        <tspan x={x} dy="-0.5em" fontWeight="bold">{name} {(percent * 100).toFixed(0)}%</tspan>
+                        <tspan x={x} dy="1.2em" fill="#f97316">{value} kg</tspan>
+                      </text>
+                    )}
+                  >
+                    {doacoes.kgPorRede.map((_, i) => (
+                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </Section>
           </div>
 
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={escalaTempo === 'semana' ? doacoes.seriesSemanal : doacoes.seriesMensal} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 12, marginTop: 10 }} />
-              
-              {redeFiltro === 'Todas' ? (
-                // Mostrar a linha total ou todas as redes. Mostraremos o Total em laranja forte.
-                <Line type="monotone" dataKey="total" name="Total (kg)" stroke="#f97316" strokeWidth={3} dot={{ r: 4, fill: '#f97316', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-              ) : (
-                // Mostrar apenas a rede filtrada
-                <Line type="monotone" dataKey={redeFiltro} name={`${redeFiltro} (kg)`} stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
-        </Section>
+          <div className="lg:col-span-2">
+            <Section title="Volume de Doações no Tempo (kg)" icon={<TrendingUp className="w-5 h-5" />}>
+              <div className="flex flex-wrap gap-4 mb-6">
+                <div className="flex bg-slate-100 p-1 rounded-lg">
+                  <button 
+                    onClick={() => setEscalaTempo('semana')}
+                    className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${escalaTempo === 'semana' ? 'bg-white text-orange-600 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Semanal
+                  </button>
+                  <button 
+                    onClick={() => setEscalaTempo('mes')}
+                    className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${escalaTempo === 'mes' ? 'bg-white text-orange-600 shadow' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Mensal
+                  </button>
+                </div>
+                
+                <select 
+                  value={redeFiltro}
+                  onChange={(e) => setRedeFiltro(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-lg px-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value="Todas">Comparar Todas</option>
+                  <option value="ApenasTotal">Apenas Total</option>
+                  {doacoes.redes.map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
+              <ResponsiveContainer width="100%" height={236}>
+                <LineChart data={escalaTempo === 'semana' ? doacoes.seriesSemanal : doacoes.seriesMensal} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 12, marginTop: 10 }} />
+                  
+                  {redeFiltro === 'Todas' && doacoes.redes.map((r, i) => (
+                    <Line key={r} type="monotone" dataKey={r} name={`${r} (kg)`} stroke={PALETTE[i % PALETTE.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  ))}
+                  {redeFiltro === 'ApenasTotal' && (
+                    <Line type="monotone" dataKey="total" name="Total (kg)" stroke="#f97316" strokeWidth={3} dot={{ r: 4, fill: '#f97316', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  )}
+                  {redeFiltro !== 'Todas' && redeFiltro !== 'ApenasTotal' && (
+                    <Line type="monotone" dataKey={redeFiltro} name={`${redeFiltro} (kg)`} stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </Section>
+          </div>
+        </div>
 
         {/* ── Linha 1: Histórico + Prioridade ───────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -331,34 +367,8 @@ export default function AnalisesPage() {
           </Section>
         </div>
 
-        {/* ── Linha 5: Doações por Rede + Produtos mais/menos doados ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Section title="Kg Doados por Rede" icon={<Heart className="w-5 h-5" />}>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie 
-                  data={doacoes.kgPorRede} 
-                  dataKey="total" 
-                  nameKey="label" 
-                  cx="50%" 
-                  cy="50%" 
-                  outerRadius={70} 
-                  labelLine={false}
-                  label={({ cx, x, y, name, percent, value }) => (
-                    <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11}>
-                      <tspan x={x} dy="-0.5em" fontWeight="bold">{name} {(percent * 100).toFixed(0)}%</tspan>
-                      <tspan x={x} dy="1.2em" fill="#f97316">{value} kg</tspan>
-                    </text>
-                  )}
-                >
-                  {doacoes.kgPorRede.map((_, i) => (
-                    <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Section>
+        {/* ── Linha 5: Produtos mais/menos doados ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Section title="Produtos Mais Doados (kg)" icon={<Package className="w-5 h-5" />}>
             <div className="space-y-3">
               {doacoes.produtosMaisDoados.length === 0 ? (

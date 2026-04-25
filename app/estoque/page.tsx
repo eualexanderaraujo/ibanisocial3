@@ -16,6 +16,11 @@ export default function EstoquePage() {
   const [estoque, setEstoque] = useState<EstoqueRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // States para edição inline
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEstoque();
@@ -31,6 +36,42 @@ export default function EstoquePage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveEdit = async (item: EstoqueRow) => {
+    const val = Number(editValue);
+    if (isNaN(val) || val < 0) {
+      alert('Quantidade inválida');
+      return;
+    }
+    setSavingId(item.id_estoque);
+    try {
+      const payload = {
+        nome_produto: item.nome_produto,
+        quantidade_estoque_kg: val,
+        quantidade_reservada_kg: item.quantidade_reservada_kg,
+        saldo_kg: val - item.quantidade_reservada_kg,
+        observacao: 'Ajuste manual pela UI',
+      };
+      const res = await fetch('/api/estoque', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Falha ao atualizar');
+      
+      setEstoque(prev => prev.map(r => r.id_estoque === item.id_estoque ? { 
+        ...r, 
+        quantidade_estoque_kg: val,
+        saldo_kg: val - r.quantidade_reservada_kg,
+      } : r));
+      setEditingId(null);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao salvar atualização.');
+    } finally {
+      setSavingId(null);
     }
   };
 
@@ -170,10 +211,39 @@ export default function EstoquePage() {
 
                       {/* Físico */}
                       <td className="px-2 sm:px-4 py-4 text-right">
-                        <span className="text-xs sm:text-sm font-semibold text-gray-700">
-                          {Number(item.quantidade_estoque_kg).toFixed(1)}
-                        </span>
-                        <span className="hidden sm:inline text-xs text-gray-400 ml-1">kg</span>
+                        {editingId === item.id_estoque ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <input
+                              type="number"
+                              className="w-16 sm:w-20 px-1 py-1 text-xs border border-orange-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 text-right"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              step="0.1"
+                              min="0"
+                              autoFocus
+                            />
+                            {savingId === item.id_estoque ? (
+                              <RefreshCw className="w-4 h-4 text-orange-500 animate-spin ml-1" />
+                            ) : (
+                              <div className="flex flex-col sm:flex-row gap-1 ml-1">
+                                <button onClick={() => handleSaveEdit(item)} className="text-emerald-600 hover:bg-emerald-50 rounded px-1 py-0.5 text-xs font-bold transition-colors">✔</button>
+                                <button onClick={() => setEditingId(null)} className="text-red-500 hover:bg-red-50 rounded px-1 py-0.5 text-xs font-bold transition-colors">✖</button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div 
+                            className="group/edit inline-flex items-center justify-end gap-1 cursor-pointer hover:bg-white px-2 py-1 rounded-md transition-colors" 
+                            onClick={() => { setEditingId(item.id_estoque); setEditValue(String(item.quantidade_estoque_kg)); }}
+                            title="Clique para editar"
+                          >
+                            <span className="text-xs sm:text-sm font-semibold text-gray-700 group-hover/edit:text-orange-600 transition-colors">
+                              {Number(item.quantidade_estoque_kg).toFixed(1)}
+                            </span>
+                            <span className="hidden sm:inline text-xs text-gray-400">kg</span>
+                            <span className="hidden sm:inline opacity-0 group-hover/edit:opacity-100 text-orange-500 text-[9px] uppercase font-bold ml-1 transition-opacity">Editar</span>
+                          </div>
+                        )}
                       </td>
 
                       {/* Reservado */}

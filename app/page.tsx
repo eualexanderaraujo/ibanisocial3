@@ -58,6 +58,14 @@ const MENU_ITEMS = [
     color: 'bg-teal-50',
     iconColor: 'text-teal-600',
   },
+  {
+    title: 'Análises',
+    description: 'Estatísticas sociais, doações e perfil dos beneficiados',
+    icon: '📈',
+    href: '/analises',
+    color: 'bg-indigo-50',
+    iconColor: 'text-indigo-600',
+  },
 ];
 
 export default function Home() {

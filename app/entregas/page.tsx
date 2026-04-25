@@ -110,8 +110,12 @@ export default function EntregasPage() {
     }
   };
 
-  const handleBeneficiadoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBeneficiadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
+    if (!value) {
+      setNewRow({ beneficiado: '', celula: '', lider: '', tipo: 'KIDS', id_pedido: '' });
+      return;
+    }
     const familia = familias.find(f => f.beneficiado === value);
     if (familia) {
       setNewRow({
@@ -122,8 +126,6 @@ export default function EntregasPage() {
         tipo: (familia.tipo_cesta === 'Kids' ? 'KIDS' : 'ADULTO'),
         id_pedido: familia.id
       });
-    } else {
-      setNewRow({ ...newRow, beneficiado: value, id_pedido: '' });
     }
   };
 
@@ -203,16 +205,14 @@ export default function EntregasPage() {
               <div className="p-6 space-y-5">
                 <div>
                   <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Família Beneficiada</label>
-                  <input 
-                    list="familias-list"
+                  <select 
                     value={newRow.beneficiado}
                     onChange={handleBeneficiadoChange}
                     className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white outline-none transition-all font-bold text-gray-800"
-                    placeholder="Nome da família..."
-                  />
-                  <datalist id="familias-list">
+                  >
+                    <option value="">Selecione uma família...</option>
                     {familias.map(f => <option key={f.id} value={f.beneficiado}>{f.beneficiado} ({f.celula})</option>)}
-                  </datalist>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

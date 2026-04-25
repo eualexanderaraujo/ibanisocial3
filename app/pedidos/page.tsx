@@ -114,14 +114,14 @@ export default function PedidosPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 pb-12">
       {/* Header */}
       <div className="bg-orange-600 text-white py-12 px-4 shadow-lg mb-8">
         <div className="max-w-4xl mx-auto">
@@ -159,7 +159,7 @@ export default function PedidosPage() {
                   <label className="text-sm font-semibold text-gray-700">Selecione a Célula</label>
                   <select 
                     required
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all font-semibold"
                     value={formData.celula}
                     onChange={(e) => handleCelulaChange(e.target.value)}
                   >
@@ -174,7 +174,7 @@ export default function PedidosPage() {
                   <label className="text-sm font-semibold text-gray-700">Rede</label>
                   <input 
                     readOnly
-                    className="w-full p-3 bg-orange-50 border border-orange-100 rounded-xl text-orange-700 font-bold"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl text-orange-700 font-bold"
                     value={formData.rede}
                     placeholder="Auto-preenchido"
                   />
@@ -182,22 +182,22 @@ export default function PedidosPage() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Líder</label>
-                  <input readOnly className="w-full p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600" value={formData.lider} />
+                  <input readOnly className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl text-gray-600 font-medium" value={formData.lider} />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Telefone Líder</label>
-                  <input readOnly className="w-full p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600" value={formData.telefone_lider} />
+                  <input readOnly className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl text-gray-600 font-medium" value={formData.telefone_lider} />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Supervisor</label>
-                  <input readOnly className="w-full p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600" value={formData.supervisor} />
+                  <input readOnly className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl text-gray-600 font-medium" value={formData.supervisor} />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">E-mail de Contato</label>
-                  <input readOnly className="w-full p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600" value={formData.email} />
+                  <input readOnly className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl text-gray-600 font-medium" value={formData.email} />
                 </div>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function PedidosPage() {
                   <label className="text-sm font-semibold text-gray-700">Nome do Beneficiado (Responsável)</label>
                   <input 
                     required
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-semibold"
                     value={formData.beneficiado}
                     onChange={(e) => setFormData({...formData, beneficiado: e.target.value})}
                   />
@@ -225,7 +225,7 @@ export default function PedidosPage() {
                   <input 
                     required
                     placeholder="(21) 99999-9999"
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-semibold"
                     value={formData.telefone}
                     onChange={(e) => setFormData({...formData, telefone: e.target.value})}
                   />
@@ -245,7 +245,7 @@ export default function PedidosPage() {
               </div>
 
               {/* Composição Familiar */}
-              <div className="mt-8 p-6 bg-orange-50 rounded-2xl border border-orange-100">
+              <div className="mt-8 p-6 bg-slate-100 rounded-2xl border border-gray-200">
                 <h4 className="font-bold text-gray-700 mb-4">Composição Familiar</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
@@ -259,7 +259,7 @@ export default function PedidosPage() {
                       <input 
                         type="number"
                         min="0"
-                        className="w-full p-3 border border-gray-200 rounded-lg text-center font-bold"
+                        className="w-full p-3 border-2 border-gray-200 rounded-lg text-center font-bold bg-white focus:ring-2 focus:ring-orange-500 outline-none"
                         value={formData[item.field as keyof typeof formData]}
                         onChange={(e) => handleNumberChange(item.field, parseInt(e.target.value) || 0)}
                       />
@@ -284,7 +284,7 @@ export default function PedidosPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Alguém da família trabalha?</label>
                   <select 
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl outline-none font-semibold"
                     value={formData.trabalham}
                     onChange={(e) => setFormData({...formData, trabalham: e.target.value})}
                   >
@@ -297,7 +297,7 @@ export default function PedidosPage() {
                   <label className="text-sm font-semibold text-gray-700">Tipo de Renda</label>
                   <input 
                     placeholder="Ex: CLT, Autônomo, Bico..."
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl outline-none font-semibold"
                     value={formData.tipo_renda}
                     onChange={(e) => setFormData({...formData, tipo_renda: e.target.value})}
                   />
@@ -307,7 +307,7 @@ export default function PedidosPage() {
                   <label className="text-sm font-semibold text-gray-700">Faixa de Renda</label>
                   <input 
                     placeholder="Ex: Até R$ 1.000,00"
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl outline-none font-semibold"
                     value={formData.faixa_renda}
                     onChange={(e) => setFormData({...formData, faixa_renda: e.target.value})}
                   />
@@ -317,7 +317,7 @@ export default function PedidosPage() {
                   <label className="text-sm font-semibold text-gray-700">Problemas Sociais</label>
                   <input 
                     placeholder="Ex: Desemprego, Doença..."
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl outline-none font-semibold"
                     value={formData.problemas}
                     onChange={(e) => setFormData({...formData, problemas: e.target.value})}
                   />
@@ -327,7 +327,7 @@ export default function PedidosPage() {
                   <label className="text-sm font-semibold text-gray-700">Observações Gerais</label>
                   <textarea 
                     rows={3}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                    className="w-full p-3 bg-slate-100 border-2 border-gray-200 rounded-xl outline-none font-semibold"
                     value={formData.observacao}
                     onChange={(e) => setFormData({...formData, observacao: e.target.value})}
                   />

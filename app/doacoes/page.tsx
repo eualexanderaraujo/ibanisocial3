@@ -256,7 +256,7 @@ export default function DoacoesPage() {
                     Rede (automática)
                   </label>
                   <input
-                    className="w-full p-3 text-sm border-2 border-gray-100 rounded-xl bg-gray-50 font-bold text-gray-400 cursor-not-allowed"
+                    className="w-full p-3 text-sm border-2 border-gray-200 rounded-xl bg-slate-100 font-bold text-gray-400 cursor-not-allowed"
                     value={form.rede}
                     readOnly
                     tabIndex={-1}
@@ -390,7 +390,7 @@ export default function DoacoesPage() {
 
       {/* ── Histórico Agrupado ─────────────────────────────────────────── */}
       <div className="bg-white rounded-xl shadow-xl border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" aria-hidden="true" />
           <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
             Histórico de Doações
@@ -404,7 +404,7 @@ export default function DoacoesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[480px]">
             <thead>
-              <tr className="bg-gray-50 text-gray-500 uppercase text-[11px] font-bold">
+              <tr className="bg-slate-100 text-gray-500 uppercase text-[11px] font-bold">
                 <th className="px-5 py-3 border-b">Célula</th>
                 <th className="px-5 py-3 border-b">Produto</th>
                 <th className="px-5 py-3 border-b w-24 text-right">Qtd (kg)</th>
@@ -412,7 +412,7 @@ export default function DoacoesPage() {
                 <th className="px-5 py-3 border-b text-gray-300">ID</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-200">
               {doacoes.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">

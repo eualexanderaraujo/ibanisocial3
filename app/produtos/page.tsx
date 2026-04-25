@@ -88,7 +88,7 @@ export default function ProdutosAdminPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-100 p-8">
         <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
         <p className="mt-4 text-gray-600 font-medium animate-pulse">Sincronizando com Google Sheets...</p>
       </div>
@@ -96,7 +96,7 @@ export default function ProdutosAdminPage() {
   }
 
   return (
-    <div className="flex-1 bg-gray-50 pb-20">
+    <div className="flex-1 bg-slate-100 pb-20">
       {/* Header Premium com Gradiente e Glassmorphism */}
       <div className="relative bg-orange-600 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-800 opacity-90"></div>
@@ -127,7 +127,7 @@ export default function ProdutosAdminPage() {
 
       <div className="max-w-7xl mx-auto px-6 -mt-8">
         {/* Barra de Pesquisa e Filtros */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/5 p-6 mb-8 border border-gray-100 flex flex-col md:flex-row gap-4">
+        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-6 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input 
@@ -135,10 +135,10 @@ export default function ProdutosAdminPage() {
               placeholder="Buscar por nome ou tipo de cesta..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-700"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-700"
             />
           </div>
-          <button className="px-6 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition-colors flex items-center gap-2">
+          <button className="px-6 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition-colors flex items-center gap-2">
             <Filter className="w-5 h-5" />
             Filtros
           </button>
@@ -147,8 +147,8 @@ export default function ProdutosAdminPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Formulário de Novo Produto */}
           <div className="xl:col-span-1">
-            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/5 overflow-hidden border border-gray-100 sticky top-8">
-              <div className="bg-gray-50 px-8 py-6 border-b border-gray-100">
+            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/10 overflow-hidden border border-gray-200 sticky top-8">
+              <div className="bg-gray-50 px-8 py-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
                   <Plus className="w-6 h-6 text-orange-600" />
                   Novo Item
@@ -164,7 +164,7 @@ export default function ProdutosAdminPage() {
                     placeholder="Ex: Arroz, Feijão..."
                     value={newProduct.nome_produto}
                     onChange={(e) => setNewProduct({...newProduct, nome_produto: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
                   />
                 </div>
                 
@@ -177,7 +177,7 @@ export default function ProdutosAdminPage() {
                       placeholder="0.00"
                       value={newProduct.quantidade_kg}
                       onChange={(e) => setNewProduct({...newProduct, quantidade_kg: parseFloat(e.target.value) || 0})}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">KG</span>
                   </div>
@@ -188,7 +188,7 @@ export default function ProdutosAdminPage() {
                   <select 
                     value={newProduct.tipo_cesta}
                     onChange={(e) => setNewProduct({...newProduct, tipo_cesta: e.target.value})}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-bold text-gray-700 appearance-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-bold text-gray-700 appearance-none"
                   >
                     <option value="Adulto/Kids">Ambas (Adulto e Kids)</option>
                     <option value="Adulto">Apenas Adulto</option>
@@ -223,8 +223,8 @@ export default function ProdutosAdminPage() {
 
           {/* Lista de Produtos */}
           <div className="xl:col-span-2">
-            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/5 overflow-hidden border border-gray-100">
-              <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/10 overflow-hidden border border-gray-200">
+              <div className="px-8 py-6 border-b border-gray-200 flex items-center justify-between bg-gray-50/50">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
                   <Layers className="w-6 h-6 text-orange-600" />
                   Itens Cadastrados
@@ -234,7 +234,7 @@ export default function ProdutosAdminPage() {
                 </div>
               </div>
               
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-200">
                 {filteredProdutos.length === 0 ? (
                   <div className="p-20 text-center">
                     <div className="inline-flex p-6 bg-gray-50 rounded-full mb-4">
@@ -287,7 +287,7 @@ export default function ProdutosAdminPage() {
                                   handleUpdate(produto.id_produto, { quantidade_kg: val });
                                 }
                               }}
-                              className="w-24 text-right px-3 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white font-bold text-gray-800 outline-none"
+                              className="w-24 text-right px-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white font-bold text-gray-800 outline-none"
                             />
                           </div>
 

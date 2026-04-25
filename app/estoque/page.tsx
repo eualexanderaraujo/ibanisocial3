@@ -44,7 +44,7 @@ export default function EstoquePage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-100 p-8">
         <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
         <p className="mt-4 text-gray-600 font-medium animate-pulse">Consultando inventário...</p>
       </div>
@@ -52,7 +52,7 @@ export default function EstoquePage() {
   }
 
   return (
-    <div className="flex-1 bg-gray-50 pb-20">
+    <div className="flex-1 bg-slate-100 pb-20">
       {/* Header Premium */}
       <div className="relative bg-slate-900 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90"></div>
@@ -111,7 +111,7 @@ export default function EstoquePage() {
         </div>
 
         {/* Lista de Itens */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-900/5 border border-gray-100 overflow-x-auto">
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-900/5 border border-gray-200 overflow-x-auto">
           {filteredEstoque.length === 0 ? (
             <div className="py-20 text-center">
               <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -128,7 +128,7 @@ export default function EstoquePage() {
                   <th className="px-6 py-4 text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-200">
                 {filteredEstoque.map((item, idx) => {
                   const saldo = Number(item.saldo_kg);
                   const isLow = saldo < 10;
@@ -156,7 +156,7 @@ export default function EstoquePage() {
                       {/* Produto */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gray-100 group-hover:bg-orange-100 rounded-xl flex items-center justify-center transition-colors shrink-0">
+                          <div className="w-8 h-8 bg-slate-100 group-hover:bg-orange-100 rounded-xl flex items-center justify-center transition-colors shrink-0">
                             <Package className="w-4 h-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
                           </div>
                           <div className="min-w-0">

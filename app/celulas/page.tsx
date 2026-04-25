@@ -88,7 +88,7 @@ export default function CelulasPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-100 p-8">
         <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
         <p className="mt-4 text-gray-600 font-medium animate-pulse">Carregando células...</p>
       </div>
@@ -96,7 +96,7 @@ export default function CelulasPage() {
   }
 
   return (
-    <div className="flex-1 bg-gray-50 pb-20">
+    <div className="flex-1 bg-slate-100 pb-20">
       {/* Header Premium */}
       <div className="relative bg-slate-900 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90"></div>
@@ -138,12 +138,12 @@ export default function CelulasPage() {
               placeholder="Pesquisar por célula, líder ou rede..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-white border-none rounded-2xl shadow-xl shadow-slate-900/5 focus:ring-2 focus:ring-orange-500 outline-none font-medium text-gray-700"
+              className="w-full pl-12 pr-4 py-4 bg-white border-none rounded-2xl shadow-xl shadow-slate-900/10 focus:ring-2 focus:ring-orange-500 outline-none font-medium text-gray-700"
             />
           </div>
           <button 
             onClick={fetchCelulas}
-            className="px-6 py-4 bg-white text-orange-600 font-bold rounded-2xl shadow-xl shadow-slate-900/5 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2 border border-orange-100"
+            className="px-6 py-4 bg-white text-orange-600 font-bold rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2 border border-orange-200"
           >
             <RefreshCw className="w-5 h-5" />
             Sincronizar
@@ -151,7 +151,7 @@ export default function CelulasPage() {
         </div>
 
         {/* Lista de Células - Modo Desktop */}
-        <div className="hidden lg:block bg-white rounded-2xl shadow-xl shadow-slate-900/5 border border-gray-100 overflow-x-auto">
+        <div className="hidden lg:block bg-white rounded-2xl shadow-xl shadow-slate-900/10 border border-gray-200 overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="bg-slate-900 text-white uppercase text-[11px] font-bold tracking-wider">
@@ -165,7 +165,7 @@ export default function CelulasPage() {
                 <th className="px-4 py-4 text-center w-24">Ação</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-200">
               {/* Row Nova Célula (Fixo no topo da tabela) */}
               <tr className="bg-orange-50/60 border-b-4 border-orange-100">
                 <td className="p-2"><input className="w-full px-3 py-2 text-sm border border-orange-200 focus:border-orange-500 rounded-lg bg-white shadow-sm outline-none placeholder-gray-400 font-medium" placeholder="Nova célula" value={newRow.nome_celula} onChange={e => setNewRow({ ...newRow, nome_celula: e.target.value })} /></td>
@@ -195,7 +195,7 @@ export default function CelulasPage() {
                   const changed = JSON.stringify(edit) !== JSON.stringify(row);
                   
                   return (
-                    <tr key={row.id_celula} className={`group transition-colors hover:bg-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                    <tr key={row.id_celula} className={`group transition-colors hover:bg-slate-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-100'}`}>
                       <td className="p-2"><input className="w-full px-3 py-1.5 text-sm bg-transparent border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded outline-none transition-all font-semibold text-gray-700" value={edit.nome_celula} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, nome_celula: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
                       <td className="p-2"><select className="w-full px-2 py-1.5 text-sm bg-transparent border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded outline-none transition-all text-gray-600" value={edit.rede} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, rede: e.target.value } })}>{REDES.map(r => <option key={r}>{r}</option>)}</select></td>
                       <td className="p-2"><input className="w-full px-3 py-1.5 text-sm bg-transparent border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded outline-none transition-all text-gray-600" value={edit.lider} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, lider: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} /></td>
@@ -221,7 +221,7 @@ export default function CelulasPage() {
         {/* Lista de Células - Modo Mobile/Tablet */}
         <div className="lg:hidden flex flex-col gap-6">
           {/* Card Nova Célula */}
-          <div className="bg-white rounded-3xl shadow-xl shadow-slate-900/5 border border-orange-100 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-900/10 border border-orange-200 overflow-hidden">
             <div className="bg-orange-500 p-4">
               <h3 className="font-black text-white text-base flex items-center gap-2">
                 <Plus className="w-5 h-5" /> Nova Célula
@@ -230,39 +230,39 @@ export default function CelulasPage() {
             <div className="p-5 space-y-4">
               <div>
                 <label className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1.5 block">Nome da Célula</label>
-                <input className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-orange-500 rounded-xl bg-gray-50 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-semibold text-gray-800 transition-all" placeholder="Ex: Célula Esperança" value={newRow.nome_celula} onChange={e => setNewRow({ ...newRow, nome_celula: e.target.value })} />
+                <input className="w-full px-4 py-3 text-sm border border-gray-300 focus:border-orange-500 rounded-xl bg-slate-100 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-semibold text-gray-800 transition-all" placeholder="Ex: Célula Esperança" value={newRow.nome_celula} onChange={e => setNewRow({ ...newRow, nome_celula: e.target.value })} />
               </div>
               
               <div>
                 <label className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1.5 block">Rede</label>
-                <select className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-orange-500 rounded-xl bg-gray-50 focus:bg-white shadow-sm outline-none font-semibold text-gray-800 transition-all appearance-none" value={newRow.rede} onChange={e => setNewRow({ ...newRow, rede: e.target.value })}>{REDES.map(r => <option key={r}>{r}</option>)}</select>
+                <select className="w-full px-4 py-3 text-sm border border-gray-300 focus:border-orange-500 rounded-xl bg-slate-100 focus:bg-white shadow-sm outline-none font-semibold text-gray-800 transition-all appearance-none" value={newRow.rede} onChange={e => setNewRow({ ...newRow, rede: e.target.value })}>{REDES.map(r => <option key={r}>{r}</option>)}</select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1.5 block">Líder</label>
-                  <input className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-orange-500 rounded-xl bg-gray-50 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-medium text-gray-800 transition-all" placeholder="Nome" value={newRow.lider} onChange={e => setNewRow({ ...newRow, lider: e.target.value })} />
+                  <input className="w-full px-4 py-3 text-sm border border-gray-300 focus:border-orange-500 rounded-xl bg-slate-100 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-medium text-gray-800 transition-all" placeholder="Nome" value={newRow.lider} onChange={e => setNewRow({ ...newRow, lider: e.target.value })} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1.5 block">Tel. Líder</label>
-                  <input className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-orange-500 rounded-xl bg-gray-50 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-mono text-gray-800 transition-all" placeholder="(00) 00000" value={newRow.telefone_lider} onChange={e => setNewRow({ ...newRow, telefone_lider: e.target.value })} />
+                  <input className="w-full px-4 py-3 text-sm border border-gray-300 focus:border-orange-500 rounded-xl bg-slate-100 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-mono text-gray-800 transition-all" placeholder="(00) 00000" value={newRow.telefone_lider} onChange={e => setNewRow({ ...newRow, telefone_lider: e.target.value })} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1.5 block">Supervisor</label>
-                  <input className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-orange-500 rounded-xl bg-gray-50 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-medium text-gray-800 transition-all" placeholder="Nome" value={newRow.supervisor} onChange={e => setNewRow({ ...newRow, supervisor: e.target.value })} />
+                  <input className="w-full px-4 py-3 text-sm border border-gray-300 focus:border-orange-500 rounded-xl bg-slate-100 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-medium text-gray-800 transition-all" placeholder="Nome" value={newRow.supervisor} onChange={e => setNewRow({ ...newRow, supervisor: e.target.value })} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1.5 block">Tel. Superv.</label>
-                  <input className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-orange-500 rounded-xl bg-gray-50 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-mono text-gray-800 transition-all" placeholder="(00) 00000" value={newRow.telefone_supervisor} onChange={e => setNewRow({ ...newRow, telefone_supervisor: e.target.value })} />
+                  <input className="w-full px-4 py-3 text-sm border border-gray-300 focus:border-orange-500 rounded-xl bg-slate-100 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-mono text-gray-800 transition-all" placeholder="(00) 00000" value={newRow.telefone_supervisor} onChange={e => setNewRow({ ...newRow, telefone_supervisor: e.target.value })} />
                 </div>
               </div>
 
               <div>
                 <label className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1.5 block">E-mail</label>
-                <input type="email" className="w-full px-4 py-3 text-sm border border-gray-200 focus:border-orange-500 rounded-xl bg-gray-50 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-medium text-gray-800 transition-all" placeholder="email@exemplo.com" value={newRow.email} onChange={e => setNewRow({ ...newRow, email: e.target.value })} />
+                <input type="email" className="w-full px-4 py-3 text-sm border border-gray-300 focus:border-orange-500 rounded-xl bg-slate-100 focus:bg-white shadow-sm outline-none placeholder-gray-400 font-medium text-gray-800 transition-all" placeholder="email@exemplo.com" value={newRow.email} onChange={e => setNewRow({ ...newRow, email: e.target.value })} />
               </div>
 
               <button onClick={handleCreate} disabled={saving === 'new'} className="bg-orange-600 hover:bg-orange-700 text-white w-full py-4 flex items-center justify-center rounded-xl text-sm font-black tracking-wide transition-colors shadow-lg shadow-orange-600/20 disabled:opacity-50 mt-4">
@@ -274,7 +274,7 @@ export default function CelulasPage() {
           {/* Cards das Células */}
           <div className="space-y-4">
             {filteredRows.length === 0 ? (
-              <div className="py-12 text-center bg-white rounded-3xl border border-gray-100 shadow-sm">
+              <div className="py-12 text-center bg-white rounded-3xl border border-gray-200 shadow-md">
                 <Network className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                 <p className="text-gray-500 font-medium">Nenhuma célula encontrada.</p>
               </div>
@@ -284,43 +284,43 @@ export default function CelulasPage() {
                 const changed = JSON.stringify(edit) !== JSON.stringify(row);
                 
                 return (
-                  <div key={row.id_celula} className="bg-white rounded-3xl shadow-md shadow-slate-900/5 border border-gray-100 overflow-hidden transition-all hover:border-orange-200">
+                  <div key={row.id_celula} className="bg-white rounded-3xl shadow-lg shadow-slate-900/10 border border-gray-200 overflow-hidden transition-all hover:border-orange-300">
                     <div className="p-5 space-y-4">
                       <div>
                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block">Nome da Célula</label>
-                        <input className="w-full px-4 py-2.5 text-base bg-gray-50 border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded-xl outline-none transition-all font-bold text-gray-800" value={edit.nome_celula} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, nome_celula: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
+                        <input className="w-full px-4 py-2.5 text-base bg-slate-100 border border-gray-200 focus:border-orange-400 focus:bg-white hover:border-gray-300 rounded-xl outline-none transition-all font-bold text-gray-800" value={edit.nome_celula} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, nome_celula: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
                       </div>
                       
                       <div>
                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block">Rede</label>
-                        <select className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded-xl outline-none transition-all font-semibold text-gray-700 appearance-none" value={edit.rede} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, rede: e.target.value } })}>{REDES.map(r => <option key={r}>{r}</option>)}</select>
+                        <select className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-gray-200 focus:border-orange-400 focus:bg-white hover:border-gray-300 rounded-xl outline-none transition-all font-semibold text-gray-700 appearance-none" value={edit.rede} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, rede: e.target.value } })}>{REDES.map(r => <option key={r}>{r}</option>)}</select>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block">Líder</label>
-                          <input className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded-xl outline-none transition-all text-gray-700 font-medium" value={edit.lider} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, lider: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
+                          <input className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-gray-200 focus:border-orange-400 focus:bg-white hover:border-gray-300 rounded-xl outline-none transition-all text-gray-700 font-medium" value={edit.lider} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, lider: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
                         </div>
                         <div>
                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block">Tel. Líder</label>
-                          <input className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded-xl outline-none transition-all text-gray-600 font-mono" value={edit.telefone_lider} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, telefone_lider: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
+                          <input className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-gray-200 focus:border-orange-400 focus:bg-white hover:border-gray-300 rounded-xl outline-none transition-all text-gray-600 font-mono" value={edit.telefone_lider} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, telefone_lider: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block">Supervisor</label>
-                          <input className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded-xl outline-none transition-all text-gray-700 font-medium" value={edit.supervisor} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, supervisor: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
+                          <input className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-gray-200 focus:border-orange-400 focus:bg-white hover:border-gray-300 rounded-xl outline-none transition-all text-gray-700 font-medium" value={edit.supervisor} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, supervisor: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
                         </div>
                         <div>
                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block">Tel. Superv.</label>
-                          <input className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded-xl outline-none transition-all text-gray-600 font-mono" value={edit.telefone_supervisor} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, telefone_supervisor: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
+                          <input className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-gray-200 focus:border-orange-400 focus:bg-white hover:border-gray-300 rounded-xl outline-none transition-all text-gray-600 font-mono" value={edit.telefone_supervisor} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, telefone_supervisor: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
                         </div>
                       </div>
 
                       <div>
                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 block">E-mail</label>
-                        <input type="email" className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-transparent focus:border-orange-300 focus:bg-white hover:border-gray-200 rounded-xl outline-none transition-all text-gray-700" value={edit.email} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, email: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
+                        <input type="email" className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-gray-200 focus:border-orange-400 focus:bg-white hover:border-gray-300 rounded-xl outline-none transition-all text-gray-700" value={edit.email} onChange={e => setEditMap({ ...editMap, [row.id_celula]: { ...edit, email: e.target.value } })} onKeyDown={e => e.key === 'Enter' && changed && handleSave(row.id_celula)} />
                       </div>
                     </div>
                     

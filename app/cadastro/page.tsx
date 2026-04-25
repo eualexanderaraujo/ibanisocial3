@@ -128,7 +128,7 @@ export default function CadastroPage() {
 
   if (status === 'success' && submissionResult) {
     return (
-      <div className="flex-1 bg-gray-50 flex items-start sm:items-center justify-center px-4 py-4 sm:py-8">
+      <div className="flex-1 bg-slate-100 flex items-start sm:items-center justify-center px-4 py-4 sm:py-8">
         <div className="w-full max-w-md mx-auto pt-4 sm:pt-0">
           <div className="bg-white rounded-3xl shadow-xl p-8 sm:p-10 w-full text-center animate-in fade-in slide-in-from-bottom-4">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Cadastro enviado</h2>
@@ -152,7 +152,7 @@ export default function CadastroPage() {
             </button>
             <Link
               href="/"
-              className="w-full py-3 px-6 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors text-center"
+              className="w-full py-3 px-6 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-slate-50 transition-colors text-center"
             >
               Voltar ao inicio
             </Link>
@@ -164,7 +164,7 @@ export default function CadastroPage() {
   }
 
   return (
-    <div className="flex-1 bg-gray-50 py-8 px-4">
+    <div className="flex-1 bg-slate-100 py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 text-brand-600 text-sm font-semibold mb-4 hover:underline">
@@ -342,7 +342,7 @@ export default function CadastroPage() {
                     id="observacao"
                     rows={5}
                     placeholder="Descreva a situacao da familia com mais detalhes..."
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50 text-gray-800 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 resize-none"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-50 text-gray-800 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 resize-none"
                     {...register('observacao')}
                   />
                   {errors.observacao?.message && <p className="text-xs text-red-600">{errors.observacao.message}</p>}
@@ -371,7 +371,7 @@ export default function CadastroPage() {
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="flex-1 py-3 px-6 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-3 px-6 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-slate-50 transition-colors"
                 >
                   Anterior
                 </button>

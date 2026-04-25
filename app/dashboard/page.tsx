@@ -138,7 +138,7 @@ function KpiCard({
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
       <div
         className="w-12 h-12 rounded-2xl mb-4"
         style={{ backgroundColor: toRgba(color, 0.14) }}
@@ -341,7 +341,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 bg-gray-50 flex items-center justify-center">
+      <div className="flex-1 bg-slate-100 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-700 font-semibold">Carregando dashboard...</p>
         </div>
@@ -351,8 +351,8 @@ export default function DashboardPage() {
 
   if (needsAuth) {
     return (
-      <div className="flex-1 bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 max-w-md w-full">
+      <div className="flex-1 bg-slate-100 flex items-center justify-center px-4">
+        <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-8 max-w-md w-full">
           <p className="text-sm uppercase tracking-[0.25em] text-brand-600 mb-3">Area interna</p>
           <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Acesso ao dashboard</h1>
           <p className="text-gray-500 text-sm mb-6">
@@ -366,7 +366,7 @@ export default function DashboardPage() {
             type="password"
             value={accessKey}
             onChange={(event) => setAccessKey(event.target.value)}
-            className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-100 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
             placeholder="Digite a chave"
           />
           {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
@@ -381,7 +381,7 @@ export default function DashboardPage() {
             </button>
             <Link
               href="/"
-              className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 text-center font-semibold text-gray-600 hover:bg-gray-50"
+              className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-200 text-center font-semibold text-gray-600 hover:bg-slate-100"
             >
               Voltar
             </Link>
@@ -393,7 +393,7 @@ export default function DashboardPage() {
 
   if (error && !data) {
     return (
-      <div className="flex-1 bg-gray-50 flex items-center justify-center px-4">
+      <div className="flex-1 bg-slate-100 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm max-w-sm">
           <p className="text-gray-700 font-semibold mb-4">{error}</p>
           <Link href="/" className="text-brand-600 font-semibold hover:underline">
@@ -405,7 +405,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex-1 bg-gray-50 py-8 px-4">
+    <div className="flex-1 bg-slate-100 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
           <div>
@@ -440,14 +440,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 mb-8">
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-5 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div>
               <label className="text-sm font-semibold text-gray-700">Rede</label>
               <select
                 value={selectedRede}
                 onChange={(event) => setSelectedRede(event.target.value)}
-                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50"
+                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-100"
               >
                 <option value="todas">Todas as redes</option>
                 {data?.filters.redes.map((rede) => (
@@ -460,7 +460,7 @@ export default function DashboardPage() {
               <select
                 value={selectedCelula}
                 onChange={(event) => setSelectedCelula(event.target.value)}
-                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50"
+                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-100"
               >
                 <option value="todas">Todas as celulas</option>
                 {data?.filters.celulas.map((celula) => (
@@ -473,7 +473,7 @@ export default function DashboardPage() {
               <select
                 value={selectedPeriodo}
                 onChange={(event) => setSelectedPeriodo(event.target.value)}
-                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50"
+                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-100"
               >
                 <option value="todos">Todo o periodo</option>
                 {data?.filters.periodos.map((periodo) => (
@@ -486,7 +486,7 @@ export default function DashboardPage() {
               <select
                 value={selectedStatus}
                 onChange={(event) => setSelectedStatus(event.target.value as 'todos' | CaseStatus)}
-                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50"
+                className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-100"
               >
                 <option value="todos">Todos os status</option>
                 {CASE_STATUSES.map((status) => (
@@ -506,7 +506,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 xl:col-span-2">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 xl:col-span-2">
             <h2 className="font-bold text-gray-800 mb-4">Familias por rede</h2>
             {porRede.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">Nenhum dado disponivel</p>
@@ -536,7 +536,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <h2 className="font-bold text-gray-800 mb-4">Distribuicao por status</h2>
             {porStatus.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">Nenhum dado disponivel</p>
@@ -566,7 +566,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 xl:col-span-2">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 xl:col-span-2">
             <h2 className="font-bold text-gray-800 mb-4">Historico mensal</h2>
             {historicoMensal.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">Nenhum dado disponivel</p>
@@ -583,14 +583,14 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <h2 className="font-bold text-gray-800 mb-4">Ranking de maior urgencia</h2>
             <div className="space-y-3">
               {urgentes.length === 0 ? (
                 <p className="text-gray-400 text-sm">Nenhum caso disponivel.</p>
               ) : (
                 urgentes.map((row) => (
-                  <div key={row.id_pedido} className="rounded-2xl border border-gray-100 p-4">
+                  <div key={row.id_pedido} className="rounded-2xl border border-gray-200 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-semibold text-gray-900">{row.beneficiado}</p>
@@ -620,8 +620,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between gap-4">
             <div>
               <h2 className="font-bold text-gray-800">Entregas por Pedido</h2>
               <p className="text-sm text-gray-500">{filteredRows.length} pedido(s) encontrado(s)</p>
@@ -630,7 +630,7 @@ export default function DashboardPage() {
           {filteredRows.length === 0 ? (
             <p className="text-gray-400 text-sm text-center py-10">Nenhum pedido encontrado para os filtros selecionados.</p>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-200">
               {filteredRows.map((row) => {
                 const redeColor = REDE_COLORS[row.rede] ?? REDE_COLORS.Outra;
                 const priorityColor = PRIORITY_COLORS[row.prioridade_label];
@@ -682,7 +682,7 @@ export default function DashboardPage() {
                         <select
                           value={currentStatus}
                           onChange={(event) => setDraftStatus((current) => ({ ...current, [row.id_pedido]: event.target.value as CaseStatus }))}
-                          className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50"
+                          className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-100"
                         >
                           {CASE_STATUSES.map((status) => (
                             <option key={status} value={status}>{CASE_STATUS_LABELS[status]}</option>
@@ -694,7 +694,7 @@ export default function DashboardPage() {
                           rows={5}
                           value={draftNotes[row.id_pedido] ?? ''}
                           onChange={(event) => setDraftNotes((current) => ({ ...current, [row.id_pedido]: event.target.value }))}
-                          className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 resize-none"
+                          className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-slate-100 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 resize-none"
                           placeholder="Registre andamento, aprovacao, entrega ou justificativa."
                         />
 

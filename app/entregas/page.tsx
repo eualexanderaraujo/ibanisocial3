@@ -134,7 +134,7 @@ export default function EntregasPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-100 p-8">
         <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
         <p className="mt-4 text-gray-600 font-medium animate-pulse">Sincronizando entregas...</p>
       </div>
@@ -142,7 +142,7 @@ export default function EntregasPage() {
   }
 
   return (
-    <div className="flex-1 bg-gray-50 pb-20">
+    <div className="flex-1 bg-slate-100 pb-20">
       {/* Header Premium */}
       <div className="relative bg-orange-600 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-900 opacity-95"></div>
@@ -176,7 +176,7 @@ export default function EntregasPage() {
 
       <div className="max-w-7xl mx-auto px-6 -mt-8">
         {/* Barra de Busca e Filtros */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/5 p-4 mb-8 border border-gray-100 flex flex-col md:flex-row gap-4">
+        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-4 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input 
@@ -184,7 +184,7 @@ export default function EntregasPage() {
               placeholder="Buscar por beneficiário ou célula..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-700"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-700"
             />
           </div>
         </div>
@@ -192,8 +192,8 @@ export default function EntregasPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Novo Registro */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/5 overflow-hidden border border-gray-100 sticky top-8">
-              <div className="bg-orange-50 px-6 py-5 border-b border-orange-100">
+            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/10 overflow-hidden border border-gray-200 sticky top-8">
+              <div className="bg-orange-50 px-6 py-5 border-b border-orange-200">
                 <h2 className="text-lg font-bold text-orange-900 flex items-center gap-2">
                   <Plus className="w-5 h-5 text-orange-600" />
                   Registrar Saída
@@ -207,7 +207,7 @@ export default function EntregasPage() {
                     list="familias-list"
                     value={newRow.beneficiado}
                     onChange={handleBeneficiadoChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white outline-none transition-all font-bold text-gray-800"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white outline-none transition-all font-bold text-gray-800"
                     placeholder="Nome da família..."
                   />
                   <datalist id="familias-list">
@@ -218,11 +218,11 @@ export default function EntregasPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Célula</label>
-                    <input type="text" value={newRow.celula} readOnly className="w-full px-4 py-3 bg-gray-100 border-none rounded-xl text-gray-500 font-bold text-sm outline-none" />
+                    <input type="text" value={newRow.celula} readOnly className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl text-gray-500 font-bold text-sm outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Líder</label>
-                    <input type="text" value={newRow.lider} readOnly className="w-full px-4 py-3 bg-gray-100 border-none rounded-xl text-gray-500 font-bold text-sm outline-none" />
+                    <input type="text" value={newRow.lider} readOnly className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl text-gray-500 font-bold text-sm outline-none" />
                   </div>
                 </div>
 
@@ -231,7 +231,7 @@ export default function EntregasPage() {
                   <select 
                     value={newRow.tipo}
                     onChange={e => setNewRow({...newRow, tipo: e.target.value as 'ADULTO'|'KIDS'})}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-orange-500 focus:bg-white outline-none font-bold text-gray-700"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white outline-none font-bold text-gray-700"
                   >
                     <option value="KIDS">KIDS</option>
                     <option value="ADULTO">ADULTO</option>
@@ -265,11 +265,11 @@ export default function EntregasPage() {
 
           {/* Lista de Saídas */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/5 overflow-hidden border border-gray-100">
+            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/10 overflow-hidden border border-gray-200">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead>
-                    <tr className="bg-gray-50 text-gray-400 uppercase text-[10px] font-black tracking-widest">
+                    <tr className="bg-slate-100 text-gray-400 uppercase text-[10px] font-black tracking-widest">
                       <th className="px-6 py-4">Beneficiário</th>
                       <th className="px-6 py-4">Tipo</th>
                       <th className="px-6 py-4">Retirado por</th>
@@ -278,7 +278,7 @@ export default function EntregasPage() {
                       <th className="px-6 py-4 text-right">Ação</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-200">
                     {filteredSaidas.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-6 py-20 text-center text-gray-400 font-medium">Nenhum registro encontrado.</td>

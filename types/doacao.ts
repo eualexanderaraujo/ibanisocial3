@@ -1,5 +1,6 @@
 export interface DoacaoRow {
   id_doacao: string;
+  data: string;
   rede: string;
   celula: string;
   nome_produto: string;
@@ -7,4 +8,4 @@ export interface DoacaoRow {
   observacao: string;
 }
 
-export type DoacaoInput = Omit<DoacaoRow, 'id_doacao'>;
+export type DoacaoInput = Omit<DoacaoRow, 'id_doacao' | 'data'>;

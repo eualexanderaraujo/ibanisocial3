@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/celulas',   label: 'Células',   icon: '🏘️' },
   { href: '/produtos',  label: 'Produtos',  icon: '🥫' },
   { href: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { href: '/analises',  label: 'Análises',  icon: '📈' },
 ];
 
 export default function NavBar() {

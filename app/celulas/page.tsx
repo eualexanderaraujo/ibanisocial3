@@ -128,7 +128,7 @@ export default function CelulasPage() {
         </div>
       </div>
 
-      <div className="max-w-[95%] mx-auto px-2 lg:px-6 -mt-8">
+      <div className="max-w-[95%] mx-auto px-2 lg:px-6 pt-8">
         {/* Filtros e Ações */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">

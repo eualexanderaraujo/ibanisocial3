@@ -63,3 +63,15 @@ Cesta básica,Célula,Líder,Beneficiado,Tipo,Retirado por:,Entregue por:
 2,Transformação e vida,Paloma,Cristina da Silva,Kids,,
 4,Rio de Vida,Edmar,Rosa Maria,Kids,ROSA,VANDA
 6,Ágape,Adriano Basílio,José Ricardo,Kids,,
+
+-----
+Novas Funcionalidades e Regras Implementadas:
+
+1. **Página de Análises:**
+- Dashboard focado em visualização de métricas: Gráficos de doações por rede (Donut/Pizza) e Volume Temporal de Doações por Rede (gráfico de linhas interativo por semana/mês).
+
+2. **Campo Oculto Data_doacao:**
+- Lançamentos de doações possuem o campo automático `Data_doacao` (carimbo de tempo) para registro histórico e alimentação estatística do painel de Análises. 
+
+3. **Edição Rápida (Inline) no Estoque:**
+- É possível atualizar manualmente os valores "Físicos" do Estoque através da página "Estoque". Passando o mouse sobre a quantidade desejada, surge a opção "Editar", que salva a correção direto no banco de dados do Google Sheets sem precisar preencher um formulário completo.

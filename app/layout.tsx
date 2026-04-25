@@ -7,7 +7,7 @@ import NavBar from '@/components/NavBar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'IbaSocial | Ação Social IBANI',
+  title: 'IbaniSocial | Ação Social IBANI',
   description: 'Sistema de gestão de ação social: pedidos, entregas, estoque e doações.',
 };
 

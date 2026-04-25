@@ -196,7 +196,26 @@ export default function DoacoesPage() {
   const totalItens = form.itens.filter(i => i.nome_produto && i.quantidade_kg).length;
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto">
+    <div className="flex-1 bg-slate-100 pb-20">
+      {/* Header Premium */}
+      <div className="relative bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90"></div>
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/20 rounded-full blur-3xl"></div>
+        
+        <div className="relative max-w-3xl mx-auto px-6 py-12 lg:py-16">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-orange-500 rounded-2xl shadow-xl shadow-orange-500/20">
+               <span aria-hidden="true" className="text-3xl text-white">🫙</span>
+            </div>
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Centro de Doações</h1>
+              <p className="text-slate-400 mt-1 font-medium">Registro de entradas de alimentos na IBANI.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-6 -mt-8">
 
       {/* ── Formulário V2 ──────────────────────────────────────────────── */}
       <div className="mb-8 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
@@ -446,6 +465,7 @@ export default function DoacoesPage() {
         </div>
       </div>
 
+      </div>
     </div>
   );
 }

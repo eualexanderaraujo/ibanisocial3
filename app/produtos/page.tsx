@@ -97,35 +97,35 @@ export default function ProdutosAdminPage() {
 
   return (
     <div className="flex-1 bg-slate-100 pb-20">
-      {/* Header Premium com Gradiente e Glassmorphism */}
-      <div className="relative bg-orange-600 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-800 opacity-90"></div>
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-orange-400/20 rounded-full blur-2xl"></div>
+      {/* Header Premium */}
+      <div className="relative bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90"></div>
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-orange-500/10 rounded-full blur-2xl"></div>
         
         <div className="relative max-w-7xl mx-auto px-6 py-12 lg:py-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl">
+              <div className="p-4 bg-orange-500 rounded-2xl shadow-xl shadow-orange-500/20">
                 <ShoppingBasket className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Composição de Cestas</h1>
-                <p className="text-orange-100 mt-1 font-medium max-w-md">
+                <p className="text-slate-400 mt-1 font-medium max-w-md">
                   Configure os itens e as quantidades (kg) que compõem cada tipo de cesta básica.
                 </p>
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
-              <span className="text-orange-100 text-sm block font-bold uppercase tracking-wider">Itens Totais</span>
+            <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
+              <span className="text-slate-400 text-sm block font-bold uppercase tracking-wider">Itens Totais</span>
               <span className="text-white text-3xl font-black">{produtos.length}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 -mt-8">
+      <div className="max-w-7xl mx-auto px-6 pt-8">
         {/* Barra de Pesquisa e Filtros */}
         <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-6 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">

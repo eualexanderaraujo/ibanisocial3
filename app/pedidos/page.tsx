@@ -121,16 +121,26 @@ export default function PedidosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 pb-12">
-      {/* Header */}
-      <div className="bg-orange-600 text-white py-12 px-4 shadow-lg mb-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-extrabold mb-2">Novo Pedido de Assistência</h1>
-          <p className="text-orange-100 text-lg">Preencha os dados abaixo para registrar uma nova solicitação.</p>
+    <div className="flex-1 bg-slate-100 pb-20">
+      {/* Header Premium */}
+      <div className="relative bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90"></div>
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/20 rounded-full blur-3xl"></div>
+        
+        <div className="relative max-w-4xl mx-auto px-6 py-12 lg:py-16">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-orange-500 rounded-2xl shadow-xl shadow-orange-500/20">
+              <span aria-hidden="true" className="text-3xl text-white">📋</span>
+            </div>
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Novo Pedido de Assistência</h1>
+              <p className="text-slate-400 mt-1 font-medium">Preencha os dados abaixo para registrar uma nova solicitação.</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4 pt-8">
         {success ? (
           <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-8 rounded-xl shadow-md mb-8">
             <h2 className="text-2xl font-bold mb-2">Pedido Realizado com Sucesso!</h2>

@@ -88,7 +88,7 @@ export default function EstoquePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 -mt-8">
+      <div className="max-w-7xl mx-auto px-6 pt-8">
         {/* Filtros e Ações */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">

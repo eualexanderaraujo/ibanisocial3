@@ -144,29 +144,29 @@ export default function EntregasPage() {
   return (
     <div className="flex-1 bg-slate-100 pb-20">
       {/* Header Premium */}
-      <div className="relative bg-orange-600 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-900 opacity-95"></div>
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+      <div className="relative bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90"></div>
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/20 rounded-full blur-3xl"></div>
         
         <div className="relative max-w-7xl mx-auto px-6 py-12 lg:py-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl">
+              <div className="p-4 bg-orange-500 rounded-2xl shadow-xl shadow-orange-500/20">
                 <Truck className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Expedição de Cestas</h1>
-                <p className="text-orange-100 mt-1 font-medium">Controle de saída e confirmação de entrega aos beneficiários.</p>
+                <p className="text-slate-400 mt-1 font-medium">Controle de saída e confirmação de entrega aos beneficiários.</p>
               </div>
             </div>
             
             <div className="flex gap-4">
-              <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
-                <span className="text-orange-100 text-[10px] font-black uppercase tracking-widest block mb-1">Entregues</span>
+              <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
+                <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block mb-1">Entregues</span>
                 <span className="text-white text-2xl font-black">{saidas.filter(s => s.status === 'entregue').length}</span>
               </div>
-              <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
-                <span className="text-orange-100 text-[10px] font-black uppercase tracking-widest block mb-1">Pendentes</span>
+              <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
+                <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block mb-1">Pendentes</span>
                 <span className="text-white text-2xl font-black">{saidas.filter(s => s.status !== 'entregue').length}</span>
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function EntregasPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 -mt-8">
+      <div className="max-w-7xl mx-auto px-6 pt-8">
         {/* Barra de Busca e Filtros */}
         <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-4 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">

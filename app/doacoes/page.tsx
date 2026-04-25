@@ -215,7 +215,7 @@ export default function DoacoesPage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 -mt-8">
+      <div className="max-w-3xl mx-auto px-6 pt-8">
 
       {/* ── Formulário V2 ──────────────────────────────────────────────── */}
       <div className="mb-8 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">

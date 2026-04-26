@@ -24,13 +24,19 @@ async function ensureHeaders() {
   }
 }
 
+function parseSafeNumber(val: any): number {
+  const s = String(val || '0').trim().replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
 function mapRow(row: string[]): DoacaoRow {
   return {
     id_doacao: String(row[0] ?? '').trim(),
     rede: String(row[1] ?? '').trim(),
     celula: String(row[2] ?? '').trim(),
     nome_produto: String(row[3] ?? '').trim(),
-    quantidade_kg: Number(row[4] ?? 0),
+    quantidade_kg: parseSafeNumber(row[4]),
     observacao: String(row[5] ?? '').trim(),
     data_doacao: String(row[6] ?? '').trim(),
   };

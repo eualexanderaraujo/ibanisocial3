@@ -81,6 +81,14 @@ export default function ProdutosAdminPage() {
     }
   };
 
+  const totalKgAdulto = produtos
+    .filter(p => p.tipo_cesta.includes('Adulto'))
+    .reduce((sum, p) => sum + p.quantidade_kg, 0);
+
+  const totalKgKids = produtos
+    .filter(p => p.tipo_cesta.includes('Kids'))
+    .reduce((sum, p) => sum + p.quantidade_kg, 0);
+
   const filteredProdutos = produtos.filter(p => 
     p.nome_produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.tipo_cesta.toLowerCase().includes(searchTerm.toLowerCase())
@@ -126,6 +134,51 @@ export default function ProdutosAdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-8">
+        {/* Resumo de Pesos das Cestas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-3xl p-8 shadow-xl shadow-orange-900/5 border border-orange-100 relative overflow-hidden group hover:shadow-orange-900/10 transition-all">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div className="relative flex items-center gap-6">
+              <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-600/20">
+                <ShoppingBasket className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <span className="text-gray-400 text-xs font-black uppercase tracking-widest block mb-1">Cesta Adulto</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-gray-900 tracking-tight">{totalKgAdulto.toFixed(2)}</span>
+                  <span className="text-gray-400 font-bold">kg / total</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-orange-500 rounded-full" style={{ width: '100%' }}></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-8 shadow-xl shadow-emerald-900/5 border border-emerald-100 relative overflow-hidden group hover:shadow-emerald-900/10 transition-all">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div className="relative flex items-center gap-6">
+              <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <ShoppingBasket className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <span className="text-gray-400 text-xs font-black uppercase tracking-widest block mb-1">Cesta Kids</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-gray-900 tracking-tight">{totalKgKids.toFixed(2)}</span>
+                  <span className="text-gray-400 font-bold">kg / total</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Barra de Pesquisa e Filtros */}
         <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-6 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">

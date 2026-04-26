@@ -79,7 +79,8 @@ export function getTimestampParts(reference = new Date()) {
 }
 
 function parseNumber(value: string) {
-  const parsed = Number(value);
+  const trimmed = String(value || '0').trim().replace(',', '.');
+  const parsed = parseFloat(trimmed);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 

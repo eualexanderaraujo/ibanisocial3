@@ -6,11 +6,29 @@ import { getDoacoes } from '@/lib/doacoesSheets';
 
 function getIso(dateStr: string): string {
   if (!dateStr) return '';
-  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr; // already ISO
-  // BR display format: DD/MM/YYYY, HH:mm
-  const m = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if (m) return `${m[3]}-${m[2]}-${m[1]}T00:00:00.000Z`;
-  return '';
+  // Se já for ISO
+  if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) return dateStr;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return `${dateStr}T00:00:00.000Z`;
+
+  // Formato BR: DD/MM/YYYY ...
+  const m = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) {
+    const day = m[1].padStart(2, '0');
+    const month = m[2].padStart(2, '0');
+    const year = m[3];
+    return `${year}-${month}-${day}T00:00:00.000Z`;
+  }
+
+  // Tenta parse nativo como último recurso
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? '' : d.toISOString();
+}
+
+function parseSafeNumber(val: any): number {
+  if (typeof val === 'number') return val;
+  const s = String(val || '0').trim().replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
 }
 
 function isoToWeekKey(iso: string): string {
@@ -59,11 +77,12 @@ function countBy<T>(arr: T[], keyFn: (item: T) => string): { label: string; coun
   return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([label, count]) => ({ label, count }));
 }
 
-function sumBy<T>(arr: T[], keyFn: (item: T) => string, valueFn: (item: T) => number): { label: string; total: number }[] {
+function sumBy<T>(arr: T[], keyFn: (item: T) => string, valueFn: (item: T) => any): { label: string; total: number }[] {
   const map = new Map<string, number>();
   for (const item of arr) {
     const key = keyFn(item) || 'Não informado';
-    map.set(key, (map.get(key) ?? 0) + valueFn(item));
+    const val = parseSafeNumber(valueFn(item));
+    map.set(key, (map.get(key) ?? 0) + val);
   }
   return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([label, total]) => ({ label, total: Math.round(total * 10) / 10 }));
 }
@@ -92,7 +111,7 @@ function buildTimeSeries(
     if (!matrix.has(key)) matrix.set(key, new Map());
     const redeKey = d.rede || 'Sem rede';
     const inner = matrix.get(key)!;
-    inner.set(redeKey, (inner.get(redeKey) ?? 0) + Number(d.quantidade_kg ?? 0));
+    inner.set(redeKey, (inner.get(redeKey) ?? 0) + parseSafeNumber(d.quantidade_kg));
   }
 
   const sortedKeys = Array.from(allKeys).sort();

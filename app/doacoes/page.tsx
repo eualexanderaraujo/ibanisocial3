@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, KeyboardEvent, useCallback } from 'react';
+import { useState, useEffect, useRef, KeyboardEvent, useCallback, Fragment } from 'react';
 import { DoacaoRow } from '@/types/doacao';
 import { ProdutoRow } from '@/types/produto';
 import { CelulaRow } from '@/types/celula';
@@ -29,6 +29,7 @@ export default function DoacoesPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [successCount, setSuccessCount] = useState<number | null>(null);
+  const [expandedCells, setExpandedCells] = useState<Set<string>>(new Set());
 
   // Refs para cada campo de item: produtoRefs[i] e quantidadeRefs[i]
   const produtoRefs = useRef<Array<HTMLSelectElement | null>>([]);
@@ -177,13 +178,24 @@ export default function DoacoesPage() {
     }
   };
 
-  // Agrupa o histórico: itens com mesmo id_doacao ficam juntos visualmente
-  const doacoesAgrupadas = doacoes.reduce<Map<string, DoacaoRow[]>>((acc, d) => {
-    const key = d.id_doacao || 'sem-id';
-    if (!acc.has(key)) acc.set(key, []);
-    acc.get(key)!.push(d);
+  // Agrupa o histórico por Célula para exibir somatórios e expansão
+  const doacoesPorCelula = Array.from(doacoes.reduce<Map<string, { celula: string, rede: string, totalKg: number, itens: DoacaoRow[] }>>((acc, d) => {
+    const key = d.celula;
+    if (!acc.has(key)) {
+      acc.set(key, { celula: d.celula, rede: d.rede, totalKg: 0, itens: [] });
+    }
+    const group = acc.get(key)!;
+    group.totalKg += d.quantidade_kg;
+    group.itens.push(d);
     return acc;
-  }, new Map());
+  }, new Map()).values()).sort((a, b) => b.totalKg - a.totalKg); // Ordena por maior doação total
+
+  const toggleCell = (celula: string) => {
+    const next = new Set(expandedCells);
+    if (next.has(celula)) next.delete(celula);
+    else next.add(celula);
+    setExpandedCells(next);
+  };
 
   if (loading) {
     return (
@@ -415,7 +427,7 @@ export default function DoacoesPage() {
             Histórico de Doações
           </h3>
           <span className="ml-auto text-xs text-gray-400 font-mono">
-            {doacoesAgrupadas.size} doação(ões) · {doacoes.length} item(ns)
+            {doacoesPorCelula.length} célula(s) · {doacoes.length} item(ns)
           </span>
         </div>
 
@@ -432,31 +444,56 @@ export default function DoacoesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {doacoes.length === 0 ? (
+              {doacoesPorCelula.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">
                     Nenhuma doação registrada ainda.
                   </td>
                 </tr>
               ) : (
-                doacoes.map((d, i) => {
-                  // Primeira linha do grupo recebe linha divisória superior destacada
-                  const isFirstInGroup = i === 0 || doacoes[i - 1].id_doacao !== d.id_doacao;
+                doacoesPorCelula.map((group) => {
+                  const isExpanded = expandedCells.has(group.celula);
                   return (
-                    <tr
-                      key={`${d.id_doacao}-${i}`}
-                      className={`hover:bg-orange-50/30 transition-colors ${isFirstInGroup && i > 0 ? 'border-t-2 border-orange-100' : ''}`}
-                    >
-                      <td className="px-5 py-3 text-sm text-gray-700 font-semibold">
-                        {isFirstInGroup ? d.celula : <span className="text-gray-300 text-xs italic">↳</span>}
-                      </td>
-                      <td className="px-5 py-3 text-sm text-gray-800 font-medium">{d.nome_produto}</td>
-                      <td className="px-5 py-3 text-sm font-bold text-green-700 text-right">{d.quantidade_kg} kg</td>
-                      <td className="px-5 py-3 text-xs text-gray-400">{isFirstInGroup ? d.rede : ''}</td>
-                      <td className="px-5 py-3 text-[11px] text-gray-300 font-mono uppercase">
-                        {isFirstInGroup ? d.id_doacao : ''}
-                      </td>
-                    </tr>
+                    <Fragment key={group.celula}>
+                      {/* Linha de Resumo da Célula */}
+                      <tr 
+                        onClick={() => toggleCell(group.celula)}
+                        className="cursor-pointer hover:bg-orange-50/50 transition-colors bg-white group"
+                      >
+                        <td className="px-5 py-4 text-sm font-bold text-slate-800 flex items-center gap-3">
+                          <span className={`text-orange-500 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+                            ▶
+                          </span>
+                          {group.celula}
+                          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
+                            {group.itens.length} {group.itens.length === 1 ? 'item' : 'itens'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-sm text-gray-400 italic">
+                          {isExpanded ? 'Ocultar detalhes' : 'Ver detalhes...'}
+                        </td>
+                        <td className="px-5 py-4 text-sm font-black text-orange-600 text-right">
+                          {group.totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg
+                        </td>
+                        <td className="px-5 py-4 text-xs text-gray-400 uppercase font-bold tracking-wider">{group.rede}</td>
+                        <td className="px-5 py-4 text-[10px] text-gray-300 font-mono">-</td>
+                      </tr>
+
+                      {/* Itens Detalhados (Exibidos se expandido) */}
+                      {isExpanded && group.itens.map((item, idx) => (
+                        <tr key={`${item.id_doacao}-${idx}`} className="bg-slate-50/50 border-l-4 border-orange-200 animate-in slide-in-from-top-1 duration-200">
+                          <td className="px-5 py-2 text-xs text-gray-400 italic pl-12">
+                            {new Date(item.data_doacao || '').toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="px-5 py-2 text-sm text-gray-600 font-medium">{item.nome_produto}</td>
+                          <td className="px-5 py-2 text-sm font-bold text-slate-700 text-right">{item.quantidade_kg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg</td>
+                          <td className="px-5 py-2 text-[10px] text-gray-300">-</td>
+                          <td className="px-5 py-2 text-[10px] text-gray-300 font-mono uppercase truncate max-w-[80px]">
+                            {item.id_doacao}
+                          </td>
+                        </tr>
+                      ))}
+                    </Fragment>
                   );
                 })
               )}

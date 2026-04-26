@@ -6,9 +6,11 @@ export async function GET() {
     const rows = await getRows();
     const familias = rows.map((row) => ({
       id: row.id_pedido,
+      data_pedido: row.data,
       beneficiado: row.beneficiado,
       celula: row.celula,
       lider: row.lider,
+      telefone_lider: row.telefone_lider,
       tipo_cesta: row.tipo_cesta,
     }));
     

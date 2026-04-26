@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   try {
     const body: SaidaInput = await req.json();
     
-    if (!body.beneficiado || !body.link_pedido || !body.celula || !body.lider || !body.tipo) {
+    if (!body.beneficiado || !body.id_pedido || !body.celula || !body.lider || !body.tipo || !body.entregue_por) {
       return NextResponse.json({ error: 'Dados inválidos ou incompletos' }, { status: 400 });
     }
 

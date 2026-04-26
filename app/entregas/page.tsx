@@ -4,38 +4,34 @@ import { useState, useEffect } from 'react';
 import { SaidaRow } from '@/types/saidas';
 import { 
   Truck, 
-  User, 
-  Users, 
-  MapPin, 
+  Search, 
   CheckCircle2, 
   Clock, 
-  Plus, 
-  Save, 
-  Search, 
-  ArrowRight,
-  Info,
-  Calendar
+  Calendar,
+  Phone,
+  UserCheck,
+  Save
 } from 'lucide-react';
 
-type Familia = { id: string; beneficiado: string; celula: string; lider: string; tipo_cesta: string };
+type Pedido = { 
+  id: string; 
+  data_pedido: string;
+  beneficiado: string; 
+  celula: string; 
+  lider: string; 
+  telefone_lider: string;
+  tipo_cesta: string; 
+};
 
 export default function EntregasPage() {
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [saidas, setSaidas] = useState<SaidaRow[]>([]);
-  const [familias, setFamilias] = useState<Familia[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'todos' | 'pendentes' | 'entregues'>('pendentes');
 
-  // Estado para a nova linha
-  const [newRow, setNewRow] = useState({
-    beneficiado: '',
-    celula: '',
-    lider: '',
-    tipo: 'KIDS' as 'ADULTO' | 'KIDS',
-    id_pedido: '',
-  });
-
-  // Estado de edição para cada linha
-  const [editState, setEditState] = useState<Record<string, { retirado_por: string, entregue_por: string }>>({});
+  // Controle de input 'entregue_por' por id do pedido
+  const [entregaData, setEntregaData] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,21 +41,13 @@ export default function EntregasPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [saidasData, familiasData] = await Promise.all([
+      const [saidasRes, familiasRes] = await Promise.all([
         fetch('/api/saidas').then(res => res.json()),
         fetch('/api/familias').then(res => res.json())
       ]);
 
-      setSaidas(Array.isArray(saidasData) ? saidasData : []);
-      setFamilias(Array.isArray(familiasData) ? familiasData : []);
-      
-      const initialEditState: any = {};
-      if (Array.isArray(saidasData)) {
-        saidasData.forEach((s: SaidaRow) => {
-          initialEditState[s.id] = { retirado_por: s.retirado_por || '', entregue_por: s.entregue_por || '' };
-        });
-      }
-      setEditState(initialEditState);
+      setSaidas(Array.isArray(saidasRes) ? saidasRes : []);
+      setPedidos(Array.isArray(familiasRes) ? familiasRes : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -67,16 +55,23 @@ export default function EntregasPage() {
     }
   };
 
-  const handleCreate = async () => {
-    if (!newRow.id_pedido) return;
-    setSavingId('new');
+  const handleConfirmarEntrega = async (pedido: Pedido) => {
+    const entregue_por = entregaData[pedido.id] || '';
+    if (!entregue_por.trim()) {
+      alert('Informe o nome de quem realizou a entrega.');
+      return;
+    }
+
+    setSavingId(pedido.id);
     const payload = {
-      beneficiado: newRow.beneficiado,
-      celula: newRow.celula,
-      lider: newRow.lider,
-      tipo: newRow.tipo,
-      link_pedido: newRow.id_pedido,
+      id_pedido: pedido.id,
+      beneficiado: pedido.beneficiado,
+      celula: pedido.celula,
+      lider: pedido.lider,
+      tipo: pedido.tipo_cesta === 'Kids' ? 'KIDS' : 'ADULTO',
+      entregue_por: entregue_por.trim()
     };
+
     try {
       const res = await fetch('/api/saidas', {
         method: 'POST',
@@ -84,61 +79,57 @@ export default function EntregasPage() {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
+        // Recarregar os dados para atualizar a tabela e o estoque
         await fetchData();
-        setNewRow({ beneficiado: '', celula: '', lider: '', tipo: 'KIDS', id_pedido: '' });
+        // Limpar o input
+        setEntregaData(prev => {
+          const newState = { ...prev };
+          delete newState[pedido.id];
+          return newState;
+        });
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || 'Erro ao confirmar entrega.');
       }
+    } catch (err) {
+      alert('Erro de comunicação com o servidor.');
     } finally {
       setSavingId(null);
     }
   };
 
-  const handleUpdate = async (id: string) => {
-    setSavingId(id);
-    const data = editState[id];
-    try {
-      const res = await fetch(`/api/saidas/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        const { row } = await res.json();
-        setSaidas(saidas.map(s => s.id === id ? row : s));
-      }
-    } finally {
-      setSavingId(null);
-    }
-  };
+  // Merge das listas e filtros
+  const pedidosMapeados = pedidos.map(pedido => {
+    const saidaVinculada = saidas.find(s => s.id_pedido === pedido.id);
+    return {
+      ...pedido,
+      isEntregue: !!saidaVinculada,
+      data_entrega: saidaVinculada?.data_entrega,
+      entregue_por: saidaVinculada?.entregue_por
+    };
+  });
 
-  const handleBeneficiadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (!value) {
-      setNewRow({ beneficiado: '', celula: '', lider: '', tipo: 'KIDS', id_pedido: '' });
-      return;
-    }
-    const familia = familias.find(f => f.beneficiado === value);
-    if (familia) {
-      setNewRow({
-        ...newRow,
-        beneficiado: familia.beneficiado,
-        celula: familia.celula,
-        lider: familia.lider,
-        tipo: (familia.tipo_cesta === 'Kids' ? 'KIDS' : 'ADULTO'),
-        id_pedido: familia.id
-      });
-    }
-  };
+  const pedidosFiltrados = pedidosMapeados.filter(p => {
+    const matchesSearch = 
+      p.beneficiado.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.celula.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.lider.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    if (!matchesSearch) return false;
 
-  const filteredSaidas = saidas.filter(s => 
-    s.beneficiado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.celula.toLowerCase().includes(searchTerm.toLowerCase())
-  ).reverse(); // Mais recentes primeiro
+    if (activeTab === 'pendentes') return !p.isEntregue;
+    if (activeTab === 'entregues') return p.isEntregue;
+    return true; // 'todos'
+  }).reverse(); // Mais recentes primeiro
+
+  const countPendentes = pedidosMapeados.filter(p => !p.isEntregue).length;
+  const countEntregues = pedidosMapeados.filter(p => p.isEntregue).length;
 
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-slate-100 p-8">
         <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
-        <p className="mt-4 text-gray-600 font-medium animate-pulse">Sincronizando entregas...</p>
+        <p className="mt-4 text-gray-600 font-medium animate-pulse">Sincronizando pedidos e entregas...</p>
       </div>
     );
   }
@@ -158,18 +149,18 @@ export default function EntregasPage() {
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Expedição de Cestas</h1>
-                <p className="text-slate-400 mt-1 font-medium">Controle de saída e confirmação de entrega aos beneficiários.</p>
+                <p className="text-slate-400 mt-1 font-medium">Controle de entregas e baixa de estoque.</p>
               </div>
             </div>
             
             <div className="flex gap-4">
               <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
                 <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block mb-1">Entregues</span>
-                <span className="text-white text-2xl font-black">{saidas.filter(s => s.status === 'entregue').length}</span>
+                <span className="text-white text-2xl font-black">{countEntregues}</span>
               </div>
-              <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
-                <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block mb-1">Pendentes</span>
-                <span className="text-white text-2xl font-black">{saidas.filter(s => s.status !== 'entregue').length}</span>
+              <div className="bg-orange-500/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-orange-500/20">
+                <span className="text-orange-400 text-[10px] font-black uppercase tracking-widest block mb-1">Pendentes</span>
+                <span className="text-orange-500 text-2xl font-black">{countPendentes}</span>
               </div>
             </div>
           </div>
@@ -177,13 +168,41 @@ export default function EntregasPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-8">
-        {/* Barra de Busca e Filtros */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-4 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
+        {/* Controles de Filtro e Abas */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-4 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4 justify-between items-center">
+          
+          <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto">
+            <button
+              onClick={() => setActiveTab('pendentes')}
+              className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'pendentes' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Pendentes
+            </button>
+            <button
+              onClick={() => setActiveTab('entregues')}
+              className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'entregues' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Entregues
+            </button>
+            <button
+              onClick={() => setActiveTab('todos')}
+              className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'todos' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Todos
+            </button>
+          </div>
+
+          <div className="relative w-full md:w-96">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Buscar por beneficiário ou célula..."
+              placeholder="Buscar beneficiário, líder ou célula..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-700"
@@ -191,185 +210,127 @@ export default function EntregasPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Novo Registro */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/10 overflow-hidden border border-gray-200 sticky top-8">
-              <div className="bg-orange-50 px-6 py-5 border-b border-orange-200">
-                <h2 className="text-lg font-bold text-orange-900 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-orange-600" />
-                  Registrar Saída
-                </h2>
-              </div>
-              
-              <div className="p-6 space-y-5">
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Família Beneficiada</label>
-                  <select 
-                    value={newRow.beneficiado}
-                    onChange={handleBeneficiadoChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white outline-none transition-all font-bold text-gray-800"
-                  >
-                    <option value="">Selecione uma família...</option>
-                    {familias.map(f => <option key={f.id} value={f.beneficiado}>{f.beneficiado} ({f.celula})</option>)}
-                  </select>
-                </div>
+        {/* Lista Unificada */}
+        <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/10 overflow-hidden border border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
+              <thead>
+                <tr className="bg-slate-100 text-gray-400 uppercase text-[10px] font-black tracking-widest">
+                  <th className="px-6 py-4">Data Pedido</th>
+                  <th className="px-6 py-4">Célula / Líder</th>
+                  <th className="px-6 py-4">Beneficiário</th>
+                  <th className="px-6 py-4">Tipo</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right min-w-[250px]">Ação / Informações de Entrega</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {pedidosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-20 text-center text-gray-400 font-medium">Nenhum pedido encontrado.</td>
+                  </tr>
+                ) : (
+                  pedidosFiltrados.map(pedido => (
+                    <tr key={pedido.id} className={`group transition-colors ${pedido.isEntregue ? 'bg-emerald-50/20 hover:bg-emerald-50/40' : 'hover:bg-orange-50/20'}`}>
+                      {/* Data Pedido */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2 text-gray-500 font-medium text-sm">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          {pedido.data_pedido}
+                        </div>
+                      </td>
+                      
+                      {/* Célula / Lider */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900">{pedido.celula}</span>
+                          <span className="text-[11px] font-bold text-gray-500 flex items-center gap-1 mt-0.5">
+                            <UserCheck className="w-3 h-3" />
+                            {pedido.lider}
+                          </span>
+                          <span className="text-[10px] font-medium text-gray-400 flex items-center gap-1 mt-0.5">
+                            <Phone className="w-3 h-3" />
+                            {pedido.telefone_lider}
+                          </span>
+                        </div>
+                      </td>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Célula</label>
-                    <input type="text" value={newRow.celula} readOnly className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl text-gray-500 font-bold text-sm outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Líder</label>
-                    <input type="text" value={newRow.lider} readOnly className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl text-gray-500 font-bold text-sm outline-none" />
-                  </div>
-                </div>
+                      {/* Beneficiário */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900">{pedido.beneficiado}</span>
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+                            ID: {pedido.id.substring(0, 8)}
+                          </span>
+                        </div>
+                      </td>
 
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Tipo de Cesta</label>
-                  <select 
-                    value={newRow.tipo}
-                    onChange={e => setNewRow({...newRow, tipo: e.target.value as 'ADULTO'|'KIDS'})}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white outline-none font-bold text-gray-700"
-                  >
-                    <option value="KIDS">KIDS</option>
-                    <option value="ADULTO">ADULTO</option>
-                  </select>
-                </div>
+                      {/* Tipo de Cesta */}
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                          pedido.tipo_cesta?.toLowerCase() === 'kids' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-orange-50 text-orange-700 border-orange-100'
+                        }`}>
+                          {pedido.tipo_cesta || 'ADULTO'}
+                        </span>
+                      </td>
 
-                <button 
-                  onClick={handleCreate}
-                  disabled={!newRow.id_pedido || savingId === 'new'}
-                  className="w-full py-4 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 text-white font-black rounded-2xl transition-all shadow-lg shadow-orange-600/20 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
-                >
-                  {savingId === 'new' ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <Truck className="w-4 h-4" />
-                  )}
-                  Confirmar Saída
-                </button>
-              </div>
+                      {/* Status */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {pedido.isEntregue ? (
+                          <div className="flex flex-col">
+                            <span className="flex items-center gap-1 text-emerald-600 font-bold text-xs uppercase tracking-wider">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Entregue
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-medium mt-1">
+                              {pedido.data_entrega}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="flex items-center gap-1 text-orange-500 font-bold text-xs uppercase tracking-wider">
+                            <Clock className="w-3.5 h-3.5" />
+                            Pendente
+                          </span>
+                        )}
+                      </td>
 
-              <div className="p-6 bg-slate-900 text-white">
-                <div className="flex gap-3">
-                  <Info className="w-5 h-5 text-orange-500 shrink-0" />
-                  <p className="text-[10px] font-medium leading-relaxed uppercase tracking-wider opacity-80">
-                    Atenção: Ao registrar a saída, o estoque físico e reservado será deduzido automaticamente.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Lista de Saídas */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-3xl shadow-xl shadow-orange-900/10 overflow-hidden border border-gray-200">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
-                  <thead>
-                    <tr className="bg-slate-100 text-gray-400 uppercase text-[10px] font-black tracking-widest">
-                      <th className="px-6 py-4">Beneficiário</th>
-                      <th className="px-6 py-4">Tipo</th>
-                      <th className="px-6 py-4">Retirado por</th>
-                      <th className="px-6 py-4">Entregue por</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-right">Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredSaidas.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-20 text-center text-gray-400 font-medium">Nenhum registro encontrado.</td>
-                      </tr>
-                    ) : (
-                      filteredSaidas.map(saida => {
-                        const isEntregue = saida.status === 'entregue';
-                        const edit = editState[saida.id] || { retirado_por: '', entregue_por: '' };
-                        const hasChanges = edit.retirado_por !== (saida.retirado_por || '') || edit.entregue_por !== (saida.entregue_por || '');
-
-                        return (
-                          <tr key={saida.id} className={`group transition-colors ${isEntregue ? 'bg-emerald-50/30' : 'hover:bg-orange-50/20'}`}>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-col">
-                                <span className="font-bold text-gray-900">{saida.beneficiado}</span>
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{saida.celula}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
-                                saida.tipo === 'KIDS' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-orange-50 text-orange-700 border-orange-100'
-                              }`}>
-                                {saida.tipo}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <input 
-                                type="text"
-                                placeholder="Ninguém"
-                                value={edit.retirado_por}
-                                onChange={e => setEditState({...editState, [saida.id]: {...edit, retirado_por: e.target.value}})}
-                                disabled={isEntregue}
-                                className={`w-full bg-transparent border-none focus:ring-0 text-sm font-medium ${isEntregue ? 'text-gray-400' : 'text-gray-700 underline decoration-gray-200 underline-offset-4'}`}
-                              />
-                            </td>
-                            <td className="px-6 py-4">
-                              <input 
-                                type="text"
-                                placeholder="Aguardando..."
-                                value={edit.entregue_por}
-                                onChange={e => setEditState({...editState, [saida.id]: {...edit, entregue_por: e.target.value}})}
-                                disabled={isEntregue}
-                                className={`w-full bg-transparent border-none focus:ring-0 text-sm font-medium ${isEntregue ? 'text-gray-400' : 'text-gray-700 underline decoration-gray-200 underline-offset-4'}`}
-                              />
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              {isEntregue ? (
-                                <div className="flex flex-col">
-                                  <span className="flex items-center gap-1 text-emerald-600 font-bold text-xs uppercase tracking-wider">
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    Entregue
-                                  </span>
-                                  <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1 mt-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {saida.data}
-                                  </span>
-                                </div>
+                      {/* Ações / Info Entrega */}
+                      <td className="px-6 py-4 text-right">
+                        {pedido.isEntregue ? (
+                          <div className="flex flex-col items-end">
+                            <span className="text-xs text-gray-500 font-medium">Entregue por:</span>
+                            <span className="text-sm font-bold text-gray-900">{pedido.entregue_por}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-2">
+                            <input 
+                              type="text"
+                              placeholder="Nome de quem entregou"
+                              value={entregaData[pedido.id] || ''}
+                              onChange={(e) => setEntregaData({...entregaData, [pedido.id]: e.target.value})}
+                              className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm w-48 focus:border-orange-500 focus:outline-none"
+                            />
+                            <button
+                              onClick={() => handleConfirmarEntrega(pedido)}
+                              disabled={savingId === pedido.id || !(entregaData[pedido.id]?.trim())}
+                              className="bg-orange-600 hover:bg-orange-700 text-white p-2.5 rounded-lg font-bold transition-all shadow-md shadow-orange-600/20 disabled:bg-gray-300 disabled:shadow-none"
+                              title="Confirmar Entrega"
+                            >
+                              {savingId === pedido.id ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                               ) : (
-                                <span className="flex items-center gap-1 text-orange-500 font-bold text-xs uppercase tracking-wider animate-pulse">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  Pendente
-                                </span>
+                                <Save className="w-4 h-4" />
                               )}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              {!isEntregue && (
-                                <button 
-                                  onClick={() => handleUpdate(saida.id)}
-                                  disabled={!hasChanges || savingId === saida.id}
-                                  className={`p-2 rounded-xl transition-all ${
-                                    hasChanges 
-                                      ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20 hover:scale-110 active:scale-95' 
-                                      : 'bg-gray-100 text-gray-300'
-                                  }`}
-                                >
-                                  {savingId === saida.id ? (
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                  ) : (
-                                    <Save className="w-4 h-4" />
-                                  )}
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                            </button>
+                          </div>
+                        )}
+                      </td>
+
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

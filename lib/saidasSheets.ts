@@ -1,5 +1,5 @@
 import { getSheets, getSpreadsheetId, getTimestampParts } from '@/lib/googleSheets';
-import { SaidaInput, SaidaRow, SaidaUpdate } from '@/types/saidas';
+import { SaidaInput, SaidaRow } from '@/types/saidas';
 import { v4 as uuidv4 } from 'uuid';
 
 const SHEET_NAME = 'SAIDAS';
@@ -10,11 +10,9 @@ const HEADERS = [
   'lider',
   'beneficiado',
   'tipo',
-  'retirado_por',
   'entregue_por',
-  'data',
-  'link_pedido',
-  'status',
+  'data_entrega',
+  'id_pedido',
 ] as const;
 
 export async function ensureSaidasHeaders() {
@@ -40,7 +38,7 @@ async function getSaidasSheetValues() {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${SHEET_NAME}!A:K`,
+      range: `${SHEET_NAME}!A:I`,
     });
 
     return {
@@ -68,11 +66,9 @@ function mapRow(row: string[]): SaidaRow {
     lider: row[3] ?? '',
     beneficiado: row[4] ?? '',
     tipo: (row[5] as 'ADULTO' | 'KIDS') || 'ADULTO',
-    retirado_por: row[6] ?? '',
-    entregue_por: row[7] ?? '',
-    data: row[8] ?? '',
-    link_pedido: row[9] ?? '',
-    status: (row[10] as 'pendente' | 'entregue') || 'pendente',
+    entregue_por: row[6] ?? '',
+    data_entrega: row[7] ?? '',
+    id_pedido: row[8] ?? '',
   };
 }
 
@@ -105,6 +101,7 @@ export async function createSaidaRow(data: SaidaInput): Promise<SaidaRow> {
   }
   const nextCesta = maxCesta + 1;
   const id = uuidv4().slice(0, 8).toUpperCase();
+  const timestamp = getTimestampParts();
   
   const row: SaidaRow = {
     id,
@@ -113,16 +110,14 @@ export async function createSaidaRow(data: SaidaInput): Promise<SaidaRow> {
     lider: data.lider,
     beneficiado: data.beneficiado,
     tipo: data.tipo,
-    retirado_por: '',
-    entregue_por: '',
-    data: '', // vazia até ser entregue
-    link_pedido: data.link_pedido,
-    status: 'pendente',
+    entregue_por: data.entregue_por,
+    data_entrega: timestamp.display,
+    id_pedido: data.id_pedido,
   };
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:K`,
+    range: `${SHEET_NAME}!A:I`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[
@@ -132,65 +127,12 @@ export async function createSaidaRow(data: SaidaInput): Promise<SaidaRow> {
         row.lider,
         row.beneficiado,
         row.tipo,
-        row.retirado_por,
         row.entregue_por,
-        row.data,
-        row.link_pedido,
-        row.status,
+        row.data_entrega,
+        row.id_pedido,
       ]],
     },
   });
 
   return row;
-}
-
-export async function updateSaidaRow(
-  id: string,
-  updates: SaidaUpdate
-): Promise<SaidaRow | null> {
-  await ensureSaidasHeaders();
-  const { sheets, spreadsheetId, values } = await getSaidasSheetValues();
-  if (values.length <= 1) return null;
-
-  const [, ...dataRows] = values;
-  const targetIndex = dataRows.findIndex((row) => (row[0] ?? '') === id);
-
-  if (targetIndex === -1) return null;
-
-  const absoluteRowIndex = targetIndex + 2;
-  const currentRow = mapRow(dataRows[targetIndex]);
-  
-  // Quando atualiza retirado/entregue, marcamos como entregue se 'entregue_por' for preenchido
-  const timestamp = getTimestampParts();
-  
-  const nextRow: SaidaRow = {
-    ...currentRow,
-    retirado_por: updates.retirado_por.trim() || currentRow.retirado_por,
-    entregue_por: updates.entregue_por.trim(),
-    data: updates.entregue_por.trim() ? (currentRow.data || timestamp.display) : currentRow.data,
-    status: updates.entregue_por.trim() ? 'entregue' : 'pendente',
-  };
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: `${SHEET_NAME}!A${absoluteRowIndex}:K${absoluteRowIndex}`,
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [[
-        nextRow.id,
-        nextRow.cesta_basica,
-        nextRow.celula,
-        nextRow.lider,
-        nextRow.beneficiado,
-        nextRow.tipo,
-        nextRow.retirado_por,
-        nextRow.entregue_por,
-        nextRow.data,
-        nextRow.link_pedido,
-        nextRow.status,
-      ]],
-    },
-  });
-
-  return nextRow;
 }

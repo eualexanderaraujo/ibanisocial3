@@ -5,12 +5,9 @@ export interface SaidaRow {
   lider: string;
   beneficiado: string;
   tipo: 'ADULTO' | 'KIDS';
-  retirado_por: string;
   entregue_por: string;
-  data: string;
-  link_pedido: string;
-  status: 'pendente' | 'entregue';
+  data_entrega: string;
+  id_pedido: string;
 }
 
-export type SaidaInput = Pick<SaidaRow, 'link_pedido' | 'beneficiado' | 'celula' | 'lider' | 'tipo'>;
-export type SaidaUpdate = Pick<SaidaRow, 'retirado_por' | 'entregue_por'>;
+export type SaidaInput = Pick<SaidaRow, 'id_pedido' | 'beneficiado' | 'celula' | 'lider' | 'tipo' | 'entregue_por'>;

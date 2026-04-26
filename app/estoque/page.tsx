@@ -105,10 +105,10 @@ export default function EstoquePage() {
         else if (fonte === 'reservado') valor = Number(stock.quantidade_reservada_kg);
         else valor = Number(stock.saldo_kg);
       }
-      const possivel = item.quantidade_kg > 0 ? Math.floor(valor / item.quantidade_kg) : 0;
+      const possivel = item.quantidade_kg > 0 ? Math.floor(valor / item.quantidade_kg) : Infinity;
       if (possivel < minCestas) minCestas = possivel;
     }
-    return minCestas === Infinity ? 0 : Math.max(0, minCestas);
+    return (minCestas === Infinity || minCestas < 0) ? 0 : minCestas;
   };
 
   const cestasFisico = { adulto: getCestasPossiveis('Adulto', 'fisico'), kids: getCestasPossiveis('Kids', 'fisico') };

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getRows } from '@/lib/googleSheets';
 import { getDoacoes } from '@/lib/doacoesSheets';
+import { getEstoque } from '@/lib/estoqueSheets';
+import { getProdutos } from '@/lib/produtosSheets';
+import { getSaidasRows } from '@/lib/saidasSheets';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -144,7 +147,13 @@ function buildTimeSeries(
 
 export async function GET() {
   try {
-    const [pedidos, doacoes] = await Promise.all([getRows(), getDoacoes()]);
+    const [pedidos, doacoes, estoque, produtos, saidas] = await Promise.all([
+      getRows(), 
+      getDoacoes(),
+      getEstoque(),
+      getProdutos(),
+      getSaidasRows()
+    ]);
 
     // All unique redes present in doacoes
     const redesSet = new Set(doacoes.map(d => d.rede || 'Sem rede').filter(Boolean));
@@ -207,6 +216,44 @@ export async function GET() {
     const prioridadeCounts = countBy(pedidos, p => p.prioridade_label ?? 'Baixa');
     const statusCounts = countBy(pedidos, p => p.status ?? 'novo');
 
+    // ── INVENTÁRIO (Resumo para Central de Análises) ───────────────────
+    const totalEstoqueFisico = estoque.reduce((acc, item) => acc + Number(item.quantidade_estoque_kg), 0);
+    const totalReservado = estoque.reduce((acc, item) => acc + Number(item.quantidade_reservada_kg), 0);
+    const totalSaldo = totalEstoqueFisico - totalReservado;
+
+    const getCestasPossiveis = (tipo: 'Adulto' | 'Kids', fonte: 'fisico' | 'saldo') => {
+      const isKids = tipo === 'Kids';
+      const comp = produtos.filter(p => (isKids ? p.kids : p.adultos) > 0);
+      if (comp.length === 0) return 0;
+      let minCestas = Infinity;
+      for (const item of comp) {
+        const stock = estoque.find(s => s.nome_produto === item.nome_produto);
+        let valor = 0;
+        if (stock) {
+          if (fonte === 'fisico') valor = Number(stock.quantidade_estoque_kg);
+          else valor = Number(stock.saldo_kg);
+        }
+        const qtdNecessaria = isKids ? item.kids : item.adultos;
+        const possivel = qtdNecessaria > 0 ? Math.floor(valor / qtdNecessaria) : Infinity;
+        if (possivel < minCestas) minCestas = possivel;
+      }
+      return (minCestas === Infinity || minCestas < 0) ? 0 : minCestas;
+    };
+
+    const countCestasReservadas = (tipo: 'Adulto' | 'Kids') => {
+      const tipoNormalizado = tipo.toUpperCase();
+      return saidas.filter(s => s.status === 'Pendente' && s.tipo.toUpperCase() === tipoNormalizado).length;
+    };
+
+    const inventario = {
+      totalEstoqueFisico,
+      totalReservado,
+      totalSaldo,
+      cestasFisico: { adulto: getCestasPossiveis('Adulto', 'fisico'), kids: getCestasPossiveis('Kids', 'fisico') },
+      cestasReservado: { adulto: countCestasReservadas('Adulto'), kids: countCestasReservadas('Kids') },
+      cestasSaldo: { adulto: getCestasPossiveis('Adulto', 'saldo'), kids: getCestasPossiveis('Kids', 'saldo') },
+    };
+
     return NextResponse.json({
       doacoes: {
         totalKgDoado: Math.round(totalKgDoado * 10) / 10,
@@ -234,6 +281,7 @@ export async function GET() {
         prioridade: prioridadeCounts,
         status: statusCounts,
       },
+      inventario,
     });
   } catch (error) {
     console.error('[analises] Erro:', error);

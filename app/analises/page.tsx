@@ -7,7 +7,7 @@ import {
   LineChart, Line,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { RefreshCw, TrendingUp, Users, Package, Heart, AlertTriangle, BarChart2 } from 'lucide-react';
+import { RefreshCw, TrendingUp, Users, Package, Heart, AlertTriangle, BarChart2, Database, ShoppingBasket } from 'lucide-react';
 
 interface AnalisesData {
   doacoes: {
@@ -35,6 +35,14 @@ interface AnalisesData {
     pedidosPorRede: { label: string; count: number }[];
     prioridade: { label: string; count: number }[];
     status: { label: string; count: number }[];
+  };
+  inventario: {
+    totalEstoqueFisico: number;
+    totalReservado: number;
+    totalSaldo: number;
+    cestasFisico: { adulto: number; kids: number };
+    cestasReservado: { adulto: number; kids: number };
+    cestasSaldo: { adulto: number; kids: number };
   };
 }
 
@@ -144,6 +152,100 @@ export default function AnalisesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-8">
+
+        {/* ── Resumo de Inventário (Centro de Inventário) ────────────────── */}
+        <div className="bg-slate-900 rounded-3xl p-8 shadow-2xl shadow-slate-900/20 relative overflow-hidden">
+          <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-orange-500 rounded-2xl shadow-xl shadow-orange-500/20">
+                <Database className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight">Centro de Inventário</h1>
+                <p className="text-slate-400 mt-1 text-sm font-medium">Controle de saldo, reservas e disponibilidade física.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Card Físico */}
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-3xl relative overflow-hidden group">
+                <div className="absolute right-0 top-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                  <Package className="w-10 h-10 text-white" />
+                </div>
+                <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block mb-2">FISICO TOTAL (CESTAS)</span>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-white text-3xl font-black">{data.inventario.cestasFisico.adulto + data.inventario.cestasFisico.kids}</span>
+                  <span className="text-slate-500 font-bold text-xs">unid</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3 h-3 text-orange-400" />
+                      <span className="text-white text-[10px] font-bold">{data.inventario.cestasFisico.adulto} <span className="text-[9px] text-slate-400">Adulto</span></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3 h-3 text-indigo-400" />
+                      <span className="text-white text-[10px] font-bold">{data.inventario.cestasFisico.kids} <span className="text-[9px] text-slate-400">Kids</span></span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total em peso: {data.inventario.totalEstoqueFisico.toFixed(1)} kg</span>
+                </div>
+              </div>
+
+              {/* Card Reservado */}
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-3xl relative overflow-hidden group">
+                <div className="absolute right-0 top-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                  <RefreshCw className="w-10 h-10 text-orange-500" />
+                </div>
+                <span className="text-orange-400 text-[10px] font-black uppercase tracking-widest block mb-2">RESERVADO (CESTAS)</span>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-orange-500 text-3xl font-black">{data.inventario.cestasReservado.adulto + data.inventario.cestasReservado.kids}</span>
+                  <span className="text-slate-500 font-bold text-xs">unid</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3 h-3 text-orange-400" />
+                      <span className="text-white text-[10px] font-bold">{data.inventario.cestasReservado.adulto} <span className="text-[9px] text-slate-400">Adulto</span></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3 h-3 text-indigo-400" />
+                      <span className="text-white text-[10px] font-bold">{data.inventario.cestasReservado.kids} <span className="text-[9px] text-slate-400">Kids</span></span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Peso reservado: {data.inventario.totalReservado.toFixed(1)} kg</span>
+                </div>
+              </div>
+
+              {/* Card Saldo */}
+              <div className="bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 p-5 rounded-3xl relative overflow-hidden group">
+                <div className="absolute right-0 top-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                  <Database className="w-10 h-10 text-emerald-500" />
+                </div>
+                <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest block mb-2">SALDO DISPONIVEL (CESTAS)</span>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-emerald-500 text-3xl font-black">{data.inventario.cestasSaldo.adulto + data.inventario.cestasSaldo.kids}</span>
+                  <span className="text-slate-500 font-bold text-xs">unid</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 rounded-lg border border-emerald-500/10">
+                      <ShoppingBasket className="w-3 h-3 text-orange-400" />
+                      <span className="text-white text-[10px] font-bold">{data.inventario.cestasSaldo.adulto} <span className="text-[9px] text-emerald-400/60">Adulto</span></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 rounded-lg border border-emerald-500/10">
+                      <ShoppingBasket className="w-3 h-3 text-indigo-400" />
+                      <span className="text-white text-[10px] font-bold">{data.inventario.cestasSaldo.kids} <span className="text-[9px] text-emerald-400/60">Kids</span></span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Capacidade livre: {data.inventario.totalSaldo.toFixed(1)} kg</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ── KPIs Gerais ───────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

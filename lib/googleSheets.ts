@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import { calculatePriority, getTipoCesta } from '@/lib/schema';
 import { CadastroInput, CadastroRow, CaseStatus, PriorityResult } from '@/types/cadastro';
 import { reservarEstoquePorPedido } from '@/lib/estoqueSheets';
+import { criarSaidaPendente, removerSaidaPorPedido } from '@/lib/saidasSheets';
 
 const SHEET_NAME = 'pedidos';
 const HEADERS = [
@@ -338,6 +339,15 @@ export async function appendRow(id: string, data: CadastroInput): Promise<Cadast
   // Reserva o estoque automaticamente
   await reservarEstoquePorPedido(row.tipo_cesta);
 
+  // Cria a intenção de saída na tabela SAIDAS como Pendente
+  await criarSaidaPendente({
+    id_pedido: row.id_pedido,
+    beneficiado: row.beneficiado,
+    celula: row.celula,
+    lider: row.lider,
+    tipo_cesta: row.tipo_cesta
+  });
+
   return row;
 }
 
@@ -461,6 +471,9 @@ export async function deletePedidoRow(id: string): Promise<boolean> {
       ],
     },
   });
+
+  // Remove também a linha correspondente na tabela SAIDAS (se existir)
+  await removerSaidaPorPedido(id);
 
   return true;
 }

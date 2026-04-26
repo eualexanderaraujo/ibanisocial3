@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { createSaidaRow, getSaidasRows } from '@/lib/saidasSheets';
+import { confirmarEntrega, getSaidasRows } from '@/lib/saidasSheets';
 import { processarSaidaEstoquePorPedido } from '@/lib/estoqueSheets';
 import { SaidaInput } from '@/types/saidas';
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Dados inválidos ou incompletos' }, { status: 400 });
     }
 
-    const row = await createSaidaRow(body);
+    const row = await confirmarEntrega(body);
     
     // Processa a saída do estoque (baixa do físico e do reservado)
     await processarSaidaEstoquePorPedido(body.tipo);

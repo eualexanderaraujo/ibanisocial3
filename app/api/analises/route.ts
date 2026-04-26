@@ -6,21 +6,28 @@ import { getDoacoes } from '@/lib/doacoesSheets';
 
 function getIso(dateStr: string): string {
   if (!dateStr) return '';
-  // Se já for ISO
-  if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) return dateStr;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return `${dateStr}T00:00:00.000Z`;
+  const s = dateStr.trim();
+  
+  // 1. Já é ISO (contém T)
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s;
+  
+  // 2. Formato YYYY-MM-DD (com ou sem hora separada por espaço)
+  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}T00:00:00.000Z`;
+  }
 
-  // Formato BR: DD/MM/YYYY ...
-  const m = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m) {
-    const day = m[1].padStart(2, '0');
-    const month = m[2].padStart(2, '0');
-    const year = m[3];
+  // 3. Formato BR: DD/MM/YYYY ...
+  const brMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (brMatch) {
+    const day = brMatch[1].padStart(2, '0');
+    const month = brMatch[2].padStart(2, '0');
+    const year = brMatch[3];
     return `${year}-${month}-${day}T00:00:00.000Z`;
   }
 
-  // Tenta parse nativo como último recurso
-  const d = new Date(dateStr);
+  // 4. Tenta parse nativo
+  const d = new Date(s);
   return isNaN(d.getTime()) ? '' : d.toISOString();
 }
 

@@ -91,6 +91,15 @@ export async function createSaidaRow(data: SaidaInput): Promise<SaidaRow> {
   
   const { sheets, spreadsheetId, values } = await getSaidasSheetValues();
   
+  // Verifica se já existe um registro para este id_pedido (independente de status)
+  if (values.length > 1) {
+    const dataRows = values.slice(1);
+    const exists = dataRows.some(row => row[8] === data.id_pedido);
+    if (exists) {
+      throw new Error(`Já existe um registro de saída para o pedido ${data.id_pedido}`);
+    }
+  }
+
   // Encontrar o maior número de cesta para auto-incremento
   let maxCesta = 0;
   if (values.length > 1) {
@@ -149,8 +158,18 @@ export async function criarSaidaPendente(pedido: {
   tipo_cesta: string 
 }): Promise<void> {
   await ensureSaidasHeaders();
-  const { sheets, spreadsheetId } = await getSaidasSheetValues();
+  const { sheets, spreadsheetId, values } = await getSaidasSheetValues();
   
+  // Verifica se já existe um registro para este id_pedido
+  if (values.length > 1) {
+    const dataRows = values.slice(1);
+    const exists = dataRows.some(row => row[8] === pedido.id_pedido);
+    if (exists) {
+      console.log(`[SAIDAS] Registro pendente já existe para pedido ${pedido.id_pedido}. Pulando.`);
+      return;
+    }
+  }
+
   const id = uuidv4().slice(0, 8).toUpperCase();
   
   await sheets.spreadsheets.values.append({

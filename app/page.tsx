@@ -51,14 +51,6 @@ const MENU_ITEMS = [
     iconColor: 'text-red-600',
   },
   {
-    title: 'Dashboard',
-    description: 'Relatórios e indicadores de impacto',
-    icon: '📊',
-    href: '/dashboard',
-    color: 'bg-teal-50',
-    iconColor: 'text-teal-600',
-  },
-  {
     title: 'Análises',
     description: 'Estatísticas sociais, doações e perfil dos beneficiados',
     icon: '📈',

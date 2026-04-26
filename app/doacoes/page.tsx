@@ -30,6 +30,7 @@ export default function DoacoesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [successCount, setSuccessCount] = useState<number | null>(null);
   const [expandedCells, setExpandedCells] = useState<Set<string>>(new Set());
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
 
   // Refs para cada campo de item: produtoRefs[i] e quantidadeRefs[i]
   const produtoRefs = useRef<Array<HTMLSelectElement | null>>([]);
@@ -178,7 +179,7 @@ export default function DoacoesPage() {
     }
   };
 
-  // Agrupa o histórico por Célula para exibir somatórios e expansão
+  // Agrupamento 1: Por Célula (Visão por Célula)
   const doacoesPorCelula = Array.from(doacoes.reduce<Map<string, { celula: string, rede: string, totalKg: number, itens: DoacaoRow[] }>>((acc, d) => {
     const key = d.celula;
     if (!acc.has(key)) {
@@ -188,13 +189,41 @@ export default function DoacoesPage() {
     group.totalKg += d.quantidade_kg;
     group.itens.push(d);
     return acc;
-  }, new Map()).values()).sort((a, b) => b.totalKg - a.totalKg); // Ordena por maior doação total
+  }, new Map()).values()).sort((a, b) => b.totalKg - a.totalKg);
 
-  const toggleCell = (celula: string) => {
+  // Agrupamento 2: Por Mês (Visão Mensal)
+  const doacoesPorMes = Array.from(doacoes.reduce<Map<string, { mesAno: string, totalKg: number, celulas: Map<string, number>, sortKey: number }>>((acc, d) => {
+    const data = d.data_doacao ? new Date(d.data_doacao) : new Date();
+    const mesNome = data.toLocaleString('pt-BR', { month: 'long' });
+    const mesFormatado = mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
+    const ano = data.getFullYear();
+    const mesAno = `${mesFormatado}/${ano}`;
+    const sortKey = ano * 100 + data.getMonth();
+    
+    if (!acc.has(mesAno)) {
+      acc.set(mesAno, { mesAno, totalKg: 0, celulas: new Map(), sortKey });
+    }
+    const group = acc.get(mesAno)!;
+    group.totalKg += d.quantidade_kg;
+    
+    const atual = group.celulas.get(d.celula) || 0;
+    group.celulas.set(d.celula, atual + d.quantidade_kg);
+    
+    return acc;
+  }, new Map()).values()).sort((a, b) => b.sortKey - a.sortKey);
+
+  const toggleCell = (key: string) => {
     const next = new Set(expandedCells);
-    if (next.has(celula)) next.delete(celula);
-    else next.add(celula);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
     setExpandedCells(next);
+  };
+
+  const toggleMonth = (key: string) => {
+    const next = new Set(expandedMonths);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setExpandedMonths(next);
   };
 
   if (loading) {
@@ -424,7 +453,7 @@ export default function DoacoesPage() {
         <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" aria-hidden="true" />
           <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
-            Histórico de Doações
+            Histórico de Doações por Célula
           </h3>
           <span className="ml-auto text-xs text-gray-400 font-mono">
             {doacoesPorCelula.length} célula(s) · {doacoes.length} item(ns)
@@ -437,10 +466,10 @@ export default function DoacoesPage() {
             <thead>
               <tr className="bg-slate-100 text-gray-500 uppercase text-[11px] font-bold">
                 <th className="px-5 py-3 border-b">Célula</th>
-                <th className="px-5 py-3 border-b">Produto</th>
-                <th className="px-5 py-3 border-b w-24 text-right">Qtd (kg)</th>
+                <th className="px-5 py-3 border-b">Ações</th>
+                <th className="px-5 py-3 border-b w-24 text-right">Total (kg)</th>
                 <th className="px-5 py-3 border-b text-gray-300">Rede</th>
-                <th className="px-5 py-3 border-b text-gray-300">ID</th>
+                <th className="px-5 py-3 border-b text-gray-300">Ref</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -455,22 +484,22 @@ export default function DoacoesPage() {
                   const isExpanded = expandedCells.has(group.celula);
                   return (
                     <Fragment key={group.celula}>
-                      {/* Linha de Resumo da Célula */}
                       <tr 
                         onClick={() => toggleCell(group.celula)}
-                        className="cursor-pointer hover:bg-orange-50/50 transition-colors bg-white group"
+                        className="cursor-pointer hover:bg-orange-50/50 transition-colors bg-white group border-l-4 border-transparent hover:border-orange-500"
                       >
-                        <td className="px-5 py-4 text-sm font-bold text-slate-800 flex items-center gap-3">
-                          <span className={`text-orange-500 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
-                            ▶
-                          </span>
-                          {group.celula}
-                          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
-                            {group.itens.length} {group.itens.length === 1 ? 'item' : 'itens'}
-                          </span>
+                        <td className="px-5 py-4 text-sm font-bold text-slate-800">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-orange-500 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+                              ▶
+                            </span>
+                            <span>{group.celula}</span>
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-400 italic">
-                          {isExpanded ? 'Ocultar detalhes' : 'Ver detalhes...'}
+                          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
+                            {group.itens.length} {group.itens.length === 1 ? 'doação' : 'doações'}
+                          </span>
                         </td>
                         <td className="px-5 py-4 text-sm font-black text-orange-600 text-right">
                           {group.totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg
@@ -479,7 +508,6 @@ export default function DoacoesPage() {
                         <td className="px-5 py-4 text-[10px] text-gray-300 font-mono">-</td>
                       </tr>
 
-                      {/* Itens Detalhados (Exibidos se expandido) */}
                       {isExpanded && group.itens.map((item, idx) => (
                         <tr key={`${item.id_doacao}-${idx}`} className="bg-slate-50/50 border-l-4 border-orange-200 animate-in slide-in-from-top-1 duration-200">
                           <td className="px-5 py-2 text-xs text-gray-400 italic pl-12">
@@ -500,6 +528,89 @@ export default function DoacoesPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* ── NOVO: Histórico por Mês ─────────────────────────────────────────── */}
+      <div className="mt-12 bg-white rounded-xl shadow-xl border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" aria-hidden="true" />
+          <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+            Histórico por Mês
+          </h3>
+          <span className="ml-auto text-xs text-gray-400 font-mono">
+            {doacoesPorMes.length} mês(es)
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[480px]">
+            <thead>
+              <tr className="bg-slate-100 text-gray-500 uppercase text-[11px] font-bold">
+                <th className="px-5 py-3 border-b">Mês / Ano</th>
+                <th className="px-5 py-3 border-b">Contribuição</th>
+                <th className="px-5 py-3 border-b w-24 text-right">Total (kg)</th>
+                <th className="px-5 py-3 border-b text-gray-300">Status</th>
+                <th className="px-5 py-3 border-b text-gray-300">-</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {doacoesPorMes.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">
+                    Nenhum registro mensal.
+                  </td>
+                </tr>
+              ) : (
+                doacoesPorMes.map((group) => {
+                  const isExpanded = expandedMonths.has(group.mesAno);
+                  return (
+                    <Fragment key={group.mesAno}>
+                      <tr 
+                        onClick={() => toggleMonth(group.mesAno)}
+                        className="cursor-pointer hover:bg-blue-50/50 transition-colors bg-white group border-l-4 border-transparent hover:border-blue-500"
+                      >
+                        <td className="px-5 py-4 text-sm font-bold text-slate-800">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-blue-500 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+                              ▶
+                            </span>
+                            <span className="uppercase tracking-tight text-blue-700">{group.mesAno}</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-sm text-gray-400 italic">
+                          <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">
+                            {group.celulas.size} células participaram
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-sm font-black text-blue-600 text-right">
+                          {group.totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg
+                        </td>
+                        <td className="px-5 py-4 text-xs text-gray-300 font-bold uppercase">Consolidado</td>
+                        <td className="px-5 py-4 text-[10px] text-gray-300 font-mono">-</td>
+                      </tr>
+
+                      {/* Detalhes por Célula no Mês */}
+                      {isExpanded && Array.from(group.celulas.entries()).map(([nome, kg], idx) => (
+                        <tr key={`${group.mesAno}-${nome}`} className="bg-blue-50/30 border-l-4 border-blue-200 animate-in slide-in-from-top-1 duration-200">
+                          <td className="px-5 py-2 text-sm text-slate-600 font-bold pl-12 italic">
+                            {nome}
+                          </td>
+                          <td className="px-5 py-2 text-xs text-gray-400">Célula contribuinte</td>
+                          <td className="px-5 py-2 text-sm font-bold text-blue-800 text-right">
+                            {kg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg
+                          </td>
+                          <td className="px-5 py-2 text-[10px] text-gray-300 italic">No mês</td>
+                          <td className="px-5 py-2 text-[10px] text-gray-300 font-mono">-</td>
+                        </tr>
+                      ))}
+                    </Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
       </div>
 
       </div>

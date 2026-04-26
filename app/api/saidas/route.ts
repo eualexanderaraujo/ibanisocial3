@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSaidaRow, getSaidasRows } from '@/lib/saidasSheets';
 import { processarSaidaEstoquePorPedido } from '@/lib/estoqueSheets';

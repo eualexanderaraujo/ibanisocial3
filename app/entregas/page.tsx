@@ -10,7 +10,8 @@ import {
   Calendar,
   Phone,
   UserCheck,
-  Save
+  Save,
+  Trash2
 } from 'lucide-react';
 
 type Pedido = { 
@@ -41,13 +42,13 @@ export default function EntregasPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [saidasRes, familiasRes] = await Promise.all([
+      const [saidasRes, pedidosRes] = await Promise.all([
         fetch('/api/saidas').then(res => res.json()),
-        fetch('/api/familias').then(res => res.json())
+        fetch('/api/pedidos').then(res => res.json())
       ]);
-
+      
       setSaidas(Array.isArray(saidasRes) ? saidasRes : []);
-      setPedidos(Array.isArray(familiasRes) ? familiasRes : []);
+      setPedidos(Array.isArray(pedidosRes) ? pedidosRes : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -95,6 +96,22 @@ export default function EntregasPage() {
       alert('Erro de comunicação com o servidor.');
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const handleDeletePedido = async (id: string) => {
+    if (!confirm('Deseja realmente EXCLUIR este pedido?\n\nEsta ação removerá o pedido da lista e devolverá as quantidades reservadas ao saldo do estoque.')) return;
+
+    try {
+      const res = await fetch(`/api/pedidos/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Erro ao excluir pedido.');
+      }
+    } catch (err) {
+      alert('Erro de conexão ao excluir pedido.');
     }
   };
 
@@ -321,6 +338,14 @@ export default function EntregasPage() {
                               ) : (
                                 <Save className="w-4 h-4" />
                               )}
+                            </button>
+                            
+                            <button
+                              onClick={() => handleDeletePedido(pedido.id)}
+                              className="p-2.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                              title="Excluir Pedido"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         )}

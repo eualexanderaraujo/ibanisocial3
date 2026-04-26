@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import { appendRow, getTimestampParts } from '@/lib/googleSheets';
+import { appendRow, getTimestampParts, getRows } from '@/lib/googleSheets';
 import { calculatePriority, getTipoCesta } from '@/lib/schema';
 
 // Schema relaxado para o formulário simplificado de /pedidos
@@ -79,5 +80,25 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[POST /api/pedidos]', err);
     return NextResponse.json({ error: 'Erro ao gravar os dados' }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    const rows = await getRows();
+    const pedidos = rows.map((row) => ({
+      id: row.id_pedido,
+      data_pedido: row.data,
+      beneficiado: row.beneficiado,
+      celula: row.celula,
+      lider: row.lider,
+      telefone_lider: row.telefone_lider,
+      tipo_cesta: row.tipo_cesta,
+    }));
+    
+    return NextResponse.json(pedidos);
+  } catch (err) {
+    console.error('[GET /api/pedidos]', err);
+    return NextResponse.json({ error: 'Erro ao buscar pedidos' }, { status: 500 });
   }
 }

@@ -253,3 +253,43 @@ export async function reservarEstoquePorPedido(tipoCesta: string): Promise<void>
     }
   }
 }
+
+export async function estornarReservaEstoquePorPedido(tipoCesta: string): Promise<void> {
+  await ensureHeaders();
+  const produtos = await getProdutos();
+  const { sheets, spreadsheetId, values } = await getSheetValues();
+  const [, ...rows] = values;
+
+  for (const produto of produtos) {
+    const corresponde = produto.tipo_cesta.toLowerCase().includes(tipoCesta.toLowerCase());
+    if (!corresponde) continue;
+
+    const qtdEstorno = Number(produto.quantidade_kg || 0);
+    if (qtdEstorno <= 0) continue;
+
+    const idx = rows.findIndex(r => r[1] === produto.nome_produto);
+    if (idx !== -1) {
+      const absRow = idx + 2;
+      const existingRow = mapRow(rows[idx]);
+      
+      const novaQtdReservada = Math.max(0, Number(existingRow.quantidade_reservada_kg) - qtdEstorno);
+      const novoSaldo = Number(existingRow.quantidade_estoque_kg) - novaQtdReservada;
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${SHEET_NAME}!A${absRow}:F${absRow}`,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [[
+            existingRow.id_estoque,
+            produto.nome_produto,
+            existingRow.quantidade_estoque_kg,
+            Number(novaQtdReservada.toFixed(3)),
+            Number(novoSaldo.toFixed(3)),
+            `Reserva Estornada (Pedido Excluído): ${tipoCesta}`
+          ]]
+        }
+      });
+    }
+  }
+}

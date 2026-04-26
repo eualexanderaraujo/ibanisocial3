@@ -422,3 +422,44 @@ export async function updateCaseRow(
 
   return nextRow;
 }
+
+export async function deletePedidoRow(id: string): Promise<boolean> {
+  await ensureHeaders();
+  const { sheets, spreadsheetId, values } = await getSheetValues();
+  if (values.length <= 1) return false;
+
+  const [, ...dataRows] = values;
+  const targetIndex = dataRows.findIndex((row) => (row[0] ?? '') === id);
+
+  if (targetIndex === -1) return false;
+
+  const absoluteRowIndex = targetIndex + 2;
+
+  // Para deletar uma linha no Google Sheets, usamos o batchUpdate com deleteDimension
+  // Precisamos saber o sheetId da aba 'pedidos'
+  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheet = spreadsheet.data.sheets?.find(s => s.properties?.title === SHEET_NAME);
+  const sheetId = sheet?.properties?.sheetId;
+
+  if (sheetId === undefined) throw new Error('Sheet ID não encontrado para ' + SHEET_NAME);
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: 'ROWS',
+              startIndex: absoluteRowIndex - 1, // 0-indexed, inclusive
+              endIndex: absoluteRowIndex,      // 0-indexed, exclusive
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return true;
+}

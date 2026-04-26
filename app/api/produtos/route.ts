@@ -17,8 +17,10 @@ export async function POST(req: NextRequest) {
     
     const produto = await appendProduto({ 
       nome_produto: body.nome_produto, 
-      quantidade_kg: Number(body.quantidade_kg ?? 0), 
-      tipo_cesta: body.tipo_cesta ?? 'Adulto/Kids'
+      adultos: Number(body.adultos ?? 0), 
+      kids: Number(body.kids ?? 0),
+      unidade: body.unidade ?? 'kg',
+      ativo: body.ativo ?? 'Sim'
     });
     
     return NextResponse.json(produto, { status: 201 });

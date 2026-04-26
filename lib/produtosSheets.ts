@@ -3,12 +3,12 @@ import { ProdutoInput, ProdutoRow } from '@/types/produto';
 import { v4 as uuidv4 } from 'uuid';
 
 const SHEET_NAME = 'produtos';
-const HEADERS = ['id_produto', 'nome_produto', 'Quantidade_(kg)', 'Tipo_cesta'] as const;
+const HEADERS = ['id_produto', 'nome_produto', 'unidade', 'ativo', 'Adultos', 'Kids'] as const;
 
 async function getSheetValues() {
   const sheets = await getSheets();
   const spreadsheetId = getSpreadsheetId();
-  const response = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${SHEET_NAME}!A:D` });
+  const response = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${SHEET_NAME}!A:F` });
   return { sheets, spreadsheetId, values: response.data.values ?? [] };
 }
 
@@ -26,8 +26,10 @@ function mapRow(row: string[]): ProdutoRow {
   return {
     id_produto: row[0] ?? '',
     nome_produto: row[1] ?? '',
-    quantidade_kg: Number(String(row[2] || '0').replace(',', '.')),
-    tipo_cesta: row[3] ?? '',
+    unidade: row[2] ?? 'kg',
+    ativo: row[3] ?? 'true',
+    adultos: Number(String(row[4] || '0').replace(',', '.')),
+    kids: Number(String(row[5] || '0').replace(',', '.')),
   };
 }
 
@@ -45,8 +47,8 @@ export async function appendProduto(data: ProdutoInput): Promise<ProdutoRow> {
   const id_produto = uuidv4().slice(0, 8).toUpperCase();
   const row: ProdutoRow = { id_produto, ...data };
   await sheets.spreadsheets.values.append({
-    spreadsheetId, range: `${SHEET_NAME}!A:D`, valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [[row.id_produto, row.nome_produto, row.quantidade_kg, row.tipo_cesta]] },
+    spreadsheetId, range: `${SHEET_NAME}!A:F`, valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [[row.id_produto, row.nome_produto, row.unidade, row.ativo, row.adultos, row.kids]] },
   });
   return row;
 }
@@ -60,8 +62,8 @@ export async function updateProduto(id: string, data: ProdutoInput): Promise<Pro
   const absRow = idx + 2;
   const row: ProdutoRow = { id_produto: id, ...data };
   await sheets.spreadsheets.values.update({
-    spreadsheetId, range: `${SHEET_NAME}!A${absRow}:D${absRow}`, valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [[row.id_produto, row.nome_produto, row.quantidade_kg, row.tipo_cesta]] },
+    spreadsheetId, range: `${SHEET_NAME}!A${absRow}:F${absRow}`, valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [[row.id_produto, row.nome_produto, row.unidade, row.ativo, row.adultos, row.kids]] },
   });
   return row;
 }

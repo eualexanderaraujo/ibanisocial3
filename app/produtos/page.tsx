@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ProdutoRow, ProdutoInput } from '@/types/produto';
-import { Package, Plus, Save, Trash2, Search, Filter, Info, ShoppingBasket, Layers } from 'lucide-react';
+import { Package, Plus, Save, Trash2, Search, Filter, Info, ShoppingBasket, Layers, Scale, Baby } from 'lucide-react';
 
 export default function ProdutosAdminPage() {
   const [produtos, setProdutos] = useState<ProdutoRow[]>([]);
@@ -13,8 +13,10 @@ export default function ProdutosAdminPage() {
   // Estado para novo produto
   const [newProduct, setNewProduct] = useState<ProdutoInput>({
     nome_produto: '',
-    quantidade_kg: 0,
-    tipo_cesta: 'Adulto/Kids'
+    adultos: 0,
+    kids: 0,
+    unidade: 'kg',
+    ativo: 'Sim'
   });
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function ProdutosAdminPage() {
       });
       if (res.ok) {
         await fetchProdutos();
-        setNewProduct({ nome_produto: '', quantidade_kg: 0, tipo_cesta: 'Adulto/Kids' });
+        setNewProduct({ nome_produto: '', adultos: 0, kids: 0, unidade: 'kg', ativo: 'Sim' });
       }
     } finally {
       setSaving(null);
@@ -56,12 +58,12 @@ export default function ProdutosAdminPage() {
     setSaving(id);
     try {
       const res = await fetch(`/api/produtos/${id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
       });
       if (res.ok) {
-        setProdutos(produtos.map(p => p.id_produto === id ? { ...p, ...updated } : p));
+        setProdutos(produtos.map(p => p.id_produto === id ? { ...p, ...updated } : p as ProdutoRow));
       }
     } finally {
       setSaving(null);
@@ -81,17 +83,11 @@ export default function ProdutosAdminPage() {
     }
   };
 
-  const totalKgAdulto = produtos
-    .filter(p => p.tipo_cesta.includes('Adulto'))
-    .reduce((sum, p) => sum + p.quantidade_kg, 0);
-
-  const totalKgKids = produtos
-    .filter(p => p.tipo_cesta.includes('Kids'))
-    .reduce((sum, p) => sum + p.quantidade_kg, 0);
+  const totalKgAdulto = produtos.reduce((sum, p) => sum + (Number(p.adultos) || 0), 0);
+  const totalKgKids = produtos.reduce((sum, p) => sum + (Number(p.kids) || 0), 0);
 
   const filteredProdutos = produtos.filter(p => 
-    p.nome_produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.tipo_cesta.toLowerCase().includes(searchTerm.toLowerCase())
+    p.nome_produto.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -120,7 +116,7 @@ export default function ProdutosAdminPage() {
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Composição de Cestas</h1>
                 <p className="text-slate-400 mt-1 font-medium max-w-md">
-                  Configure os itens e as quantidades (kg) que compõem cada tipo de cesta básica.
+                  Configure os itens e as quantidades (kg) para as cestas Adulto e Kids.
                 </p>
               </div>
             </div>
@@ -140,7 +136,7 @@ export default function ProdutosAdminPage() {
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 rounded-full group-hover:scale-110 transition-transform"></div>
             <div className="relative flex items-center gap-6">
               <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-600/20">
-                <ShoppingBasket className="w-8 h-8 text-white" />
+                <Scale className="w-8 h-8 text-white" />
               </div>
               <div>
                 <span className="text-gray-400 text-xs font-black uppercase tracking-widest block mb-1">Cesta Adulto</span>
@@ -150,18 +146,13 @@ export default function ProdutosAdminPage() {
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-orange-500 rounded-full" style={{ width: '100%' }}></div>
-              </div>
-            </div>
           </div>
 
           <div className="bg-white rounded-3xl p-8 shadow-xl shadow-emerald-900/5 border border-emerald-100 relative overflow-hidden group hover:shadow-emerald-900/10 transition-all">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform"></div>
             <div className="relative flex items-center gap-6">
               <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <ShoppingBasket className="w-8 h-8 text-white" />
+                <Baby className="w-8 h-8 text-white" />
               </div>
               <div>
                 <span className="text-gray-400 text-xs font-black uppercase tracking-widest block mb-1">Cesta Kids</span>
@@ -171,30 +162,21 @@ export default function ProdutosAdminPage() {
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }}></div>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Barra de Pesquisa e Filtros */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-6 mb-8 border border-gray-200 flex flex-col md:flex-row gap-4">
+        {/* Barra de Pesquisa */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-orange-900/10 p-6 mb-8 border border-gray-200">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Buscar por nome ou tipo de cesta..."
+              placeholder="Buscar item da composição..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-700"
             />
           </div>
-          <button className="px-6 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition-colors flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filtros
-          </button>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -206,7 +188,7 @@ export default function ProdutosAdminPage() {
                   <Plus className="w-6 h-6 text-orange-600" />
                   Novo Item
                 </h2>
-                <p className="text-gray-500 text-sm mt-1">Adicione um novo produto à lista de composição.</p>
+                <p className="text-gray-500 text-sm mt-1">Defina os pesos para cada tipo de cesta.</p>
               </div>
               
               <div className="p-8 space-y-6">
@@ -221,31 +203,39 @@ export default function ProdutosAdminPage() {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Quantidade por Cesta (kg)</label>
-                  <div className="relative">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Peso Adulto (kg)</label>
                     <input 
                       type="number" 
-                      step="0.01"
-                      placeholder="0.00"
-                      value={newProduct.quantidade_kg}
-                      onChange={(e) => setNewProduct({...newProduct, quantidade_kg: parseFloat(e.target.value) || 0})}
+                      step="0.001"
+                      value={newProduct.adultos}
+                      onChange={(e) => setNewProduct({...newProduct, adultos: parseFloat(e.target.value) || 0})}
                       className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">KG</span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Peso Kids (kg)</label>
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      value={newProduct.kids}
+                      onChange={(e) => setNewProduct({...newProduct, kids: parseFloat(e.target.value) || 0})}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-medium text-gray-800"
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Atende ao Tipo de Cesta</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Unidade</label>
                   <select 
-                    value={newProduct.tipo_cesta}
-                    onChange={(e) => setNewProduct({...newProduct, tipo_cesta: e.target.value})}
+                    value={newProduct.unidade}
+                    onChange={(e) => setNewProduct({...newProduct, unidade: e.target.value})}
                     className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all font-bold text-gray-700 appearance-none"
                   >
-                    <option value="Adulto/Kids">Ambas (Adulto e Kids)</option>
-                    <option value="Adulto">Apenas Adulto</option>
-                    <option value="Kids">Apenas Kids</option>
+                    <option value="kg">kg</option>
+                    <option value="un">un</option>
+                    <option value="litro">litro</option>
                   </select>
                 </div>
 
@@ -261,15 +251,6 @@ export default function ProdutosAdminPage() {
                   )}
                   Salvar Produto
                 </button>
-              </div>
-              
-              <div className="px-8 py-6 bg-orange-50 border-t border-orange-100">
-                <div className="flex gap-3">
-                  <Info className="w-5 h-5 text-orange-600 shrink-0" />
-                  <p className="text-xs text-orange-800 leading-relaxed font-medium">
-                    Ao salvar, este item passará a ser reservado automaticamente em cada novo pedido registrado no sistema.
-                  </p>
-                </div>
               </div>
             </div>
           </div>
@@ -293,7 +274,7 @@ export default function ProdutosAdminPage() {
                     <div className="inline-flex p-6 bg-gray-50 rounded-full mb-4">
                       <Search className="w-10 h-10 text-gray-300" />
                     </div>
-                    <p className="text-gray-500 font-medium">Nenhum produto encontrado com estes termos.</p>
+                    <p className="text-gray-500 font-medium">Nenhum produto encontrado.</p>
                   </div>
                 ) : (
                   filteredProdutos.map(produto => (
@@ -310,37 +291,41 @@ export default function ProdutosAdminPage() {
                             }}
                             className="text-lg font-bold text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none w-full p-0 cursor-text group-hover:text-orange-700 transition-colors"
                           />
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 shadow-sm">
-                              <ShoppingBasket className="w-3.5 h-3.5 text-orange-500" />
-                              {produto.quantidade_kg} kg / cesta
-                            </span>
-                            <span className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm border ${
-                              produto.tipo_cesta.includes('Adulto') && produto.tipo_cesta.includes('Kids')
-                                ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
-                                : produto.tipo_cesta === 'Adulto'
-                                  ? 'bg-orange-50 text-orange-700 border-orange-100'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                            }`}>
-                              {produto.tipo_cesta}
-                            </span>
+                          <div className="flex items-center gap-4 mt-2">
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 shadow-sm">
+                              <Scale className="w-3.5 h-3.5 text-orange-500" />
+                              Adulto: {produto.adultos} {produto.unidade}
+                            </div>
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 shadow-sm">
+                              <Baby className="w-3.5 h-3.5 text-emerald-500" />
+                              Kids: {produto.kids} {produto.unidade}
+                            </div>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-4">
-                          <div className="flex flex-col items-end">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Qtd (KG)</label>
+                          <div className="grid grid-cols-2 gap-2">
                             <input 
                               type="number" 
-                              step="0.01"
-                              defaultValue={produto.quantidade_kg}
+                              step="0.001"
+                              defaultValue={produto.adultos}
                               onBlur={(e) => {
                                 const val = parseFloat(e.target.value) || 0;
-                                if (val !== produto.quantidade_kg) {
-                                  handleUpdate(produto.id_produto, { quantidade_kg: val });
-                                }
+                                if (val !== produto.adultos) handleUpdate(produto.id_produto, { adultos: val });
                               }}
-                              className="w-24 text-right px-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:bg-white font-bold text-gray-800 outline-none"
+                              className="w-20 text-center px-2 py-1 bg-gray-50 border-2 border-gray-200 rounded-lg font-bold text-xs"
+                              title="Peso Adulto"
+                            />
+                            <input 
+                              type="number" 
+                              step="0.001"
+                              defaultValue={produto.kids}
+                              onBlur={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                if (val !== produto.kids) handleUpdate(produto.id_produto, { kids: val });
+                              }}
+                              className="w-20 text-center px-2 py-1 bg-gray-50 border-2 border-gray-200 rounded-xl font-bold text-xs"
+                              title="Peso Kids"
                             />
                           </div>
 
@@ -348,7 +333,6 @@ export default function ProdutosAdminPage() {
                             onClick={() => handleDelete(produto.id_produto)}
                             disabled={saving === produto.id_produto}
                             className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                            title="Remover produto"
                           >
                             {saving === produto.id_produto ? (
                               <div className="w-5 h-5 border-2 border-red-200 border-t-red-600 rounded-full animate-spin"></div>

@@ -116,15 +116,32 @@ export default function EntregasPage() {
   };
 
   // Merge das listas e filtros
-  const pedidosMapeados = pedidos.map(pedido => {
-    const saidaVinculada = saidas.find(s => s.id_pedido === pedido.id);
-    return {
-      ...pedido,
-      isEntregue: saidaVinculada?.status === 'Entregue',
-      data_entrega: saidaVinculada?.data_entrega,
-      entregue_por: saidaVinculada?.entregue_por
-    };
-  });
+  const pedidosMapeados = [
+    ...pedidos.map(pedido => {
+      const saidaVinculada = saidas.find(s => s.id_pedido === pedido.id);
+      return {
+        ...pedido,
+        isEntregue: saidaVinculada?.status.toLowerCase() === 'entregue',
+        data_entrega: saidaVinculada?.data_entrega,
+        entregue_por: saidaVinculada?.entregue_por
+      };
+    }),
+    // Adiciona saídas que não possuem pedido correspondente (ex: lançamentos diretos ou dados legados)
+    ...saidas
+      .filter(s => !pedidos.some(p => p.id === s.id_pedido))
+      .map(s => ({
+        id: s.id_pedido,
+        data_pedido: s.data_entrega || 'N/A',
+        beneficiado: s.beneficiado,
+        celula: s.celula,
+        lider: s.lider,
+        telefone_lider: 'N/A',
+        tipo_cesta: s.tipo === 'KIDS' ? 'Kids' : 'Adulto',
+        isEntregue: s.status.toLowerCase() === 'entregue',
+        data_entrega: s.data_entrega,
+        entregue_por: s.entregue_por
+      }))
+  ];
 
   const pedidosFiltrados = pedidosMapeados.filter(p => {
     const matchesSearch = 

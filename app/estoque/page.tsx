@@ -98,7 +98,9 @@ export default function EstoquePage() {
 
   // Cálculo de Cestas Equivalentes
   const getCestasPossiveis = (tipo: 'Adulto' | 'Kids', fonte: 'fisico' | 'saldo') => {
-    const comp = produtos.filter(p => p.tipo_cesta.includes(tipo));
+    const isKids = tipo === 'Kids';
+    // Filtra produtos que fazem parte da cesta escolhida (quantidade > 0)
+    const comp = produtos.filter(p => (isKids ? p.kids : p.adultos) > 0);
     if (comp.length === 0) return 0;
 
     let minCestas = Infinity;
@@ -109,7 +111,9 @@ export default function EstoquePage() {
         if (fonte === 'fisico') valor = Number(stock.quantidade_estoque_kg);
         else valor = Number(stock.saldo_kg);
       }
-      const possivel = item.quantidade_kg > 0 ? Math.floor(valor / item.quantidade_kg) : Infinity;
+      
+      const qtdNecessaria = isKids ? item.kids : item.adultos;
+      const possivel = qtdNecessaria > 0 ? Math.floor(valor / qtdNecessaria) : Infinity;
       if (possivel < minCestas) minCestas = possivel;
     }
     return (minCestas === Infinity || minCestas < 0) ? 0 : minCestas;
@@ -158,20 +162,23 @@ export default function EstoquePage() {
                 <div className="absolute right-0 top-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
                   <Package className="w-12 h-12 text-white" />
                 </div>
-                <span className="text-slate-400 text-xs font-black uppercase tracking-widest block mb-2">Físico Total</span>
+                <span className="text-slate-400 text-xs font-black uppercase tracking-widest block mb-2">FISICO TOTAL (CESTAS)</span>
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-white text-4xl font-black">{totalEstoqueFisico.toFixed(1)}</span>
-                  <span className="text-slate-500 font-bold">kg</span>
+                  <span className="text-white text-4xl font-black">{cestasFisico.adulto + cestasFisico.kids}</span>
+                  <span className="text-slate-500 font-bold text-sm">unid</span>
                 </div>
-                <div className="flex gap-3">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
-                    <ShoppingBasket className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="text-white text-xs font-bold">{cestasFisico.adulto} <span className="text-[10px] text-slate-400">Adulto</span></span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3.5 h-3.5 text-orange-400" />
+                      <span className="text-white text-xs font-bold">{cestasFisico.adulto} <span className="text-[10px] text-slate-400">Adulto</span></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="text-white text-xs font-bold">{cestasFisico.kids} <span className="text-[10px] text-slate-400">Kids</span></span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
-                    <ShoppingBasket className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-white text-xs font-bold">{cestasFisico.kids} <span className="text-[10px] text-slate-400">Kids</span></span>
-                  </div>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total em peso: {totalEstoqueFisico.toFixed(1)} kg</span>
                 </div>
               </div>
 
@@ -179,20 +186,23 @@ export default function EstoquePage() {
                 <div className="absolute right-0 top-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
                   <RefreshCw className="w-12 h-12 text-orange-500" />
                 </div>
-                <span className="text-orange-400 text-xs font-black uppercase tracking-widest block mb-2">Reservado</span>
+                <span className="text-orange-400 text-xs font-black uppercase tracking-widest block mb-2">RESERVADO (CESTAS)</span>
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-orange-500 text-4xl font-black">{totalReservado.toFixed(1)}</span>
-                  <span className="text-slate-500 font-bold">kg</span>
+                  <span className="text-orange-500 text-4xl font-black">{cestasReservado.adulto + cestasReservado.kids}</span>
+                  <span className="text-slate-500 font-bold text-sm">unid</span>
                 </div>
-                <div className="flex gap-3">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
-                    <ShoppingBasket className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="text-white text-xs font-bold">{cestasReservado.adulto} <span className="text-[10px] text-slate-400">Adulto</span></span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3.5 h-3.5 text-orange-400" />
+                      <span className="text-white text-xs font-bold">{cestasReservado.adulto} <span className="text-[10px] text-slate-400">Adulto</span></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
+                      <ShoppingBasket className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="text-white text-xs font-bold">{cestasReservado.kids} <span className="text-[10px] text-slate-400">Kids</span></span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg border border-white/5">
-                    <ShoppingBasket className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-white text-xs font-bold">{cestasReservado.kids} <span className="text-[10px] text-slate-400">Kids</span></span>
-                  </div>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Peso reservado: {totalReservado.toFixed(1)} kg</span>
                 </div>
               </div>
 
@@ -200,20 +210,23 @@ export default function EstoquePage() {
                 <div className="absolute right-0 top-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
                   <Database className="w-12 h-12 text-emerald-500" />
                 </div>
-                <span className="text-emerald-400 text-xs font-black uppercase tracking-widest block mb-2">Saldo Disponível</span>
+                <span className="text-emerald-400 text-xs font-black uppercase tracking-widest block mb-2">SALDO DISPONIVEL (CESTAS)</span>
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-emerald-500 text-4xl font-black">{totalSaldo.toFixed(1)}</span>
-                  <span className="text-slate-500 font-bold">kg</span>
+                  <span className="text-emerald-500 text-4xl font-black">{cestasSaldo.adulto + cestasSaldo.kids}</span>
+                  <span className="text-slate-500 font-bold text-sm">unid</span>
                 </div>
-                <div className="flex gap-3">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 rounded-lg border border-emerald-500/10">
-                    <ShoppingBasket className="w-3.5 h-3.5 text-orange-400" />
-                    <span className="text-white text-xs font-bold">{cestasSaldo.adulto} <span className="text-[10px] text-emerald-400/60">Adulto</span></span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 rounded-lg border border-emerald-500/10">
+                      <ShoppingBasket className="w-3.5 h-3.5 text-orange-400" />
+                      <span className="text-white text-xs font-bold">{cestasSaldo.adulto} <span className="text-[10px] text-emerald-400/60">Adulto</span></span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 rounded-lg border border-emerald-500/10">
+                      <ShoppingBasket className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="text-white text-xs font-bold">{cestasSaldo.kids} <span className="text-[10px] text-emerald-400/60">Kids</span></span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 rounded-lg border border-emerald-500/10">
-                    <ShoppingBasket className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-white text-xs font-bold">{cestasSaldo.kids} <span className="text-[10px] text-emerald-400/60">Kids</span></span>
-                  </div>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Capacidade livre: {totalSaldo.toFixed(1)} kg</span>
                 </div>
               </div>
             </div>

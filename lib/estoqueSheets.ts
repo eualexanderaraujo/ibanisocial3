@@ -158,13 +158,15 @@ export async function processarSaidaEstoquePorPedido(tipoCesta: string): Promise
   const [, ...rows] = values;
 
   for (const produto of produtos) {
-    const corresponde = produto.tipo_cesta.toLowerCase().includes(tipoCesta.toLowerCase());
-    if (!corresponde) continue;
-
-    const qtdSaida = Number(produto.quantidade_kg || 0);
+    const isKids = tipoCesta.toLowerCase() === 'kids';
+    const qtdSaida = isKids ? produto.kids : produto.adultos;
+    
     if (qtdSaida <= 0) continue;
 
-    const idx = rows.findIndex(r => r[1] === produto.nome_produto);
+    const idx = rows.findIndex(r => 
+      String(r[1] || '').trim().toLowerCase() === produto.nome_produto.trim().toLowerCase()
+    );
+
     if (idx !== -1) {
       const absRow = idx + 2;
       const existingRow = mapRow(rows[idx]);
@@ -173,17 +175,19 @@ export async function processarSaidaEstoquePorPedido(tipoCesta: string): Promise
       const novaQtdReservada = Math.max(0, Number(existingRow.quantidade_reservada_kg) - qtdSaida);
       const novoSaldo = novaQtdFisico - novaQtdReservada;
 
+      console.log(`[ESTOQUE] Saída Definitiva ${produto.nome_produto}: Fisico=${novaQtdFisico}, Reservada=${novaQtdReservada}`);
+
       await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: `${SHEET_NAME}!A${absRow}:F${absRow}`,
-        valueInputOption: 'RAW',
+        valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [[
             existingRow.id_estoque,
             produto.nome_produto,
-            novaQtdFisico,
-            novaQtdReservada,
-            novoSaldo,
+            novaQtdFisico.toFixed(3).replace('.', ','),
+            novaQtdReservada.toFixed(3).replace('.', ','),
+            novoSaldo.toFixed(3).replace('.', ','),
             `Saída Confirmada: ${tipoCesta}`
           ]]
         }
@@ -198,54 +202,55 @@ export async function reservarEstoquePorPedido(tipoCesta: string): Promise<void>
   const { sheets, spreadsheetId, values } = await getSheetValues();
   const [, ...rows] = values;
 
-  for (const produto of produtos) {
-    // Lógica de compatibilidade de cesta:
-    // Se a cesta do pedido é 'Adulto', pegamos produtos onde tipo_cesta contém 'Adulto'
-    // Se a cesta do pedido é 'Kids', pegamos produtos onde tipo_cesta contém 'Kids'
-    const corresponde = produto.tipo_cesta.toLowerCase().includes(tipoCesta.toLowerCase());
-    
-    if (!corresponde) continue;
+  console.log(`[ESTOQUE] Reservando para: ${tipoCesta}`);
 
-    const qtdReservar = Number(produto.quantidade_kg || 0);
-    console.log(`Debug Reserva: Produto ${produto.nome_produto} | Qtd a Reservar: ${qtdReservar} | Tipo Cesta: ${produto.tipo_cesta}`);
+  for (const produto of produtos) {
+    const isKids = tipoCesta.toLowerCase() === 'kids';
+    const qtdReservar = isKids ? produto.kids : produto.adultos;
+    
     if (qtdReservar <= 0) continue;
 
-    const idx = rows.findIndex(r => r[1] === produto.nome_produto);
+    const idx = rows.findIndex(r => 
+      String(r[1] || '').trim().toLowerCase() === produto.nome_produto.trim().toLowerCase()
+    );
+
     if (idx !== -1) {
       const absRow = idx + 2;
       const existingRow = mapRow(rows[idx]);
-      console.log(`Debug Reserva: Encontrado no estoque. Reservada atual: ${existingRow.quantidade_reservada_kg}`);
       const novaQtdReservada = Number(existingRow.quantidade_reservada_kg) + qtdReservar;
       const novoSaldo = Number(existingRow.quantidade_estoque_kg) - novaQtdReservada;
+
+      console.log(`[ESTOQUE] Reserva ${produto.nome_produto}: Nova Reservada=${novaQtdReservada}`);
 
       await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: `${SHEET_NAME}!A${absRow}:F${absRow}`,
-        valueInputOption: 'RAW',
+        valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [[
             existingRow.id_estoque,
             produto.nome_produto,
-            existingRow.quantidade_estoque_kg,
-            Number(novaQtdReservada.toFixed(3)),
-            Number(novoSaldo.toFixed(3)),
+            existingRow.quantidade_estoque_kg.toString().replace('.', ','),
+            novaQtdReservada.toFixed(3).replace('.', ','),
+            novoSaldo.toFixed(3).replace('.', ','),
             `Reserva Automática: Pedido ${tipoCesta}`
           ]]
         }
       });
     } else {
       const id_estoque = uuidv4().slice(0, 8).toUpperCase();
+      console.log(`[ESTOQUE] Novo item no estoque (reserva): ${produto.nome_produto}`);
       await sheets.spreadsheets.values.append({
         spreadsheetId,
         range: `${SHEET_NAME}!A:F`,
-        valueInputOption: 'RAW',
+        valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [[
             id_estoque,
             produto.nome_produto,
-            0,
-            qtdReservar,
-            -qtdReservar,
+            "0",
+            qtdReservar.toFixed(3).replace('.', ','),
+            (-qtdReservar).toFixed(3).replace('.', ','),
             `Reserva Automática (Sem estoque inicial): ${tipoCesta}`
           ]]
         }
@@ -261,13 +266,15 @@ export async function estornarReservaEstoquePorPedido(tipoCesta: string): Promis
   const [, ...rows] = values;
 
   for (const produto of produtos) {
-    const corresponde = produto.tipo_cesta.toLowerCase().includes(tipoCesta.toLowerCase());
-    if (!corresponde) continue;
-
-    const qtdEstorno = Number(produto.quantidade_kg || 0);
+    const isKids = tipoCesta.toLowerCase() === 'kids';
+    const qtdEstorno = isKids ? produto.kids : produto.adultos;
+    
     if (qtdEstorno <= 0) continue;
 
-    const idx = rows.findIndex(r => r[1] === produto.nome_produto);
+    const idx = rows.findIndex(r => 
+      String(r[1] || '').trim().toLowerCase() === produto.nome_produto.trim().toLowerCase()
+    );
+
     if (idx !== -1) {
       const absRow = idx + 2;
       const existingRow = mapRow(rows[idx]);
@@ -278,14 +285,14 @@ export async function estornarReservaEstoquePorPedido(tipoCesta: string): Promis
       await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: `${SHEET_NAME}!A${absRow}:F${absRow}`,
-        valueInputOption: 'RAW',
+        valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [[
             existingRow.id_estoque,
             produto.nome_produto,
-            existingRow.quantidade_estoque_kg,
-            Number(novaQtdReservada.toFixed(3)),
-            Number(novoSaldo.toFixed(3)),
+            existingRow.quantidade_estoque_kg.toString().replace('.', ','),
+            novaQtdReservada.toFixed(3).replace('.', ','),
+            novoSaldo.toFixed(3).replace('.', ','),
             `Reserva Estornada (Pedido Excluído): ${tipoCesta}`
           ]]
         }

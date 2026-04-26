@@ -89,19 +89,24 @@ export default function AnalisesPage() {
   
   // Filtros do Gráfico de Linhas (Doações no Tempo)
   const [escalaTempo, setEscalaTempo] = useState<'semana' | 'mes'>('mes');
-  const [redeFiltro, setRedeFiltro] = useState<string>('Todas');
+  const [redeFiltro, setRedeFiltro] = useState<string>('ApenasTotal');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    
     setError('');
     try {
-      const res = await fetch('/api/analises');
+      const res = await fetch('/api/analises', { cache: 'no-store' });
       if (!res.ok) throw new Error('Falha ao carregar análises');
-      setData(await res.json());
+      const result = await res.json();
+      setData(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -144,8 +149,13 @@ export default function AnalisesPage() {
                 <p className="text-slate-400 mt-1 font-medium">Indicadores estatísticos de impacto social da IBANI.</p>
               </div>
             </div>
-            <button onClick={fetchData} className="inline-flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/20 transition-colors">
-              <RefreshCw className="w-4 h-4" /> Atualizar
+            <button 
+              onClick={() => fetchData(true)} 
+              disabled={loading || refreshing}
+              className={`inline-flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/20 transition-all ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} /> 
+              {refreshing ? 'Atualizando...' : 'Atualizar'}
             </button>
           </div>
         </div>
@@ -249,7 +259,7 @@ export default function AnalisesPage() {
 
         {/* ── KPIs Gerais ───────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <KPI icon={<Heart className="w-6 h-6 text-white" />} label="Total doado" value={`${doacoes.totalKgDoado} kg`} color="bg-orange-500" />
+          <KPI icon={<Heart className="w-6 h-6 text-white" />} label="Total doado" value={`${Math.round(doacoes.totalKgDoado)} kg`} color="bg-orange-500" />
           <KPI icon={<Users className="w-6 h-6 text-white" />} label="Famílias" value={pedidos.totalFamilias} sub={`${pedidos.totalPessoas} pessoas`} color="bg-blue-500" />
           <KPI icon={<Package className="w-6 h-6 text-white" />} label="Crianças" value={pedidos.totalCriancas} color="bg-emerald-500" />
           <KPI icon={<TrendingUp className="w-6 h-6 text-white" />} label="Idosos" value={pedidos.totalIdosos} color="bg-purple-500" />
@@ -327,13 +337,13 @@ export default function AnalisesPage() {
                   <Legend wrapperStyle={{ fontSize: 12, marginTop: 10 }} />
                   
                   {redeFiltro === 'Todas' && doacoes.redes.map((r, i) => (
-                    <Line key={r} type="monotone" dataKey={r} name={`${r} (kg)`} stroke={PALETTE[i % PALETTE.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                    <Line key={r} type="monotone" dataKey={r} name={`${r} (kg)`} stroke={PALETTE[i % PALETTE.length]} strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                   ))}
-                  {redeFiltro === 'ApenasTotal' && (
-                    <Line type="monotone" dataKey="total" name="Total (kg)" stroke="#f97316" strokeWidth={3} dot={{ r: 4, fill: '#f97316', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  {(redeFiltro === 'ApenasTotal' || (redeFiltro !== 'Todas' && !doacoes.redes.includes(redeFiltro))) && (
+                    <Line type="monotone" dataKey="total" name="Total (kg)" stroke="#f97316" strokeWidth={4} dot={{ r: 5, fill: '#f97316', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
                   )}
-                  {redeFiltro !== 'Todas' && redeFiltro !== 'ApenasTotal' && (
-                    <Line type="monotone" dataKey={redeFiltro} name={`${redeFiltro} (kg)`} stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  {doacoes.redes.includes(redeFiltro) && (
+                    <Line type="monotone" dataKey={redeFiltro} name={`${redeFiltro} (kg)`} stroke="#3b82f6" strokeWidth={4} dot={{ r: 5, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
                   )}
                 </LineChart>
               </ResponsiveContainer>

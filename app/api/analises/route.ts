@@ -155,21 +155,31 @@ export async function GET() {
       getSaidasRows()
     ]);
 
-    // All unique redes present in doacoes
-    const redesSet = new Set(doacoes.map(d => d.rede || 'Sem rede').filter(Boolean));
+    // All unique redes present in doacoes - Clean up names/numbers
+    const recognizedRedes = ['AZUL', 'VERDE', 'VERMELHA', 'AMARELA', 'LARANJA', 'ROXA', 'BRANCA', 'PRETA', 'Dourada'];
+    const normalizeRede = (r: string) => {
+      const s = String(r || '').trim().toUpperCase();
+      if (recognizedRedes.includes(s)) return s;
+      if (!s || s === 'NÃO' || s === 'SIM') return 'Sem rede';
+      // If it has numbers or is too long, it's probably not a rede
+      if (/\d/.test(s) || s.length > 20) return 'Outros';
+      return s;
+    };
+
+    const redesSet = new Set(doacoes.map(d => normalizeRede(d.rede)));
     const redesList = Array.from(redesSet).sort();
 
     // ── DOAÇÕES ────────────────────────────────────────────────────────────
     const totalKgDoado = doacoes.reduce((s, d) => s + Number(d.quantidade_kg ?? 0), 0);
-    const kgPorRede = sumBy(doacoes, d => d.rede, d => Number(d.quantidade_kg ?? 0));
+    const kgPorRede = sumBy(doacoes, d => normalizeRede(d.rede), d => Number(d.quantidade_kg ?? 0));
     const kgPorCelula = sumBy(doacoes, d => d.celula, d => Number(d.quantidade_kg ?? 0)).slice(0, 12);
     const produtosMaisDoados = sumBy(doacoes, d => d.nome_produto, d => Number(d.quantidade_kg ?? 0));
     const top5Doados = produtosMaisDoados.slice(0, 5);
     const bottom5Doados = [...produtosMaisDoados].reverse().slice(0, 5);
 
     // Time-series (últimas 12 semanas / 12 meses)
-    const seriesSemanal = buildTimeSeries(doacoes, 'semana', redesList).slice(-14);
-    const seriesMensal = buildTimeSeries(doacoes, 'mes', redesList).slice(-12);
+    const seriesSemanal = buildTimeSeries(doacoes.map(d => ({ ...d, rede: normalizeRede(d.rede) })), 'semana', redesList).slice(-14);
+    const seriesMensal = buildTimeSeries(doacoes.map(d => ({ ...d, rede: normalizeRede(d.rede) })), 'mes', redesList).slice(-12);
 
     // ── PEDIDOS ────────────────────────────────────────────────────────────
     const totalFamilias = pedidos.length;

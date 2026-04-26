@@ -611,9 +611,7 @@ export default function DoacoesPage() {
           </table>
         </div>
       </div>
-      </div>
-
-      </div>
     </div>
+  </div>
   );
 }

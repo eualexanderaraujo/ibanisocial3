@@ -120,7 +120,7 @@ export default function EntregasPage() {
     const saidaVinculada = saidas.find(s => s.id_pedido === pedido.id);
     return {
       ...pedido,
-      isEntregue: !!saidaVinculada,
+      isEntregue: saidaVinculada?.status === 'Entregue',
       data_entrega: saidaVinculada?.data_entrega,
       entregue_por: saidaVinculada?.entregue_por
     };

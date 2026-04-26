@@ -36,15 +36,18 @@ async function ensureHeaders() {
 function mapRow(row: string[]): EstoqueRow {
   const q_fisico = Number(String(row[2] || '0').replace(',', '.'));
   const q_reservada = Number(String(row[3] || '0').replace(',', '.'));
+  const q_saldo = Number(String(row[4] || '0').replace(',', '.'));
+  
   const quantidade_estoque_kg = isNaN(q_fisico) ? 0 : q_fisico;
   const quantidade_reservada_kg = isNaN(q_reservada) ? 0 : q_reservada;
+  const saldo_kg = isNaN(q_saldo) ? 0 : q_saldo;
   
   return {
     id_estoque: row[0] ?? '',
     nome_produto: row[1] ?? '',
     quantidade_estoque_kg,
     quantidade_reservada_kg,
-    saldo_kg: quantidade_estoque_kg - quantidade_reservada_kg,
+    saldo_kg,
     observacao: row[5] ?? '',
   };
 }

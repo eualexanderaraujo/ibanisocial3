@@ -13,10 +13,12 @@ import {
   ShoppingBasket
 } from 'lucide-react';
 import { ProdutoRow } from '@/types/produto';
+import { SaidaRow } from '@/types/saidas';
 
 export default function EstoquePage() {
   const [estoque, setEstoque] = useState<EstoqueRow[]>([]);
   const [produtos, setProdutos] = useState<ProdutoRow[]>([]);
+  const [saidas, setSaidas] = useState<SaidaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -32,14 +34,17 @@ export default function EstoquePage() {
   const fetchEstoque = async () => {
     setLoading(true);
     try {
-      const [resEstoque, resProdutos] = await Promise.all([
+      const [resEstoque, resProdutos, resSaidas] = await Promise.all([
         fetch('/api/estoque'),
-        fetch('/api/produtos')
+        fetch('/api/produtos'),
+        fetch('/api/saidas')
       ]);
       const dataE = await resEstoque.json();
       const dataP = await resProdutos.json();
+      const dataS = await resSaidas.json();
       setEstoque(Array.isArray(dataE) ? dataE : []);
       setProdutos(Array.isArray(dataP) ? dataP : []);
+      setSaidas(Array.isArray(dataS) ? dataS : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -92,7 +97,7 @@ export default function EstoquePage() {
   const totalSaldo = totalEstoqueFisico - totalReservado;
 
   // Cálculo de Cestas Equivalentes
-  const getCestasPossiveis = (tipo: 'Adulto' | 'Kids', fonte: 'fisico' | 'reservado' | 'saldo') => {
+  const getCestasPossiveis = (tipo: 'Adulto' | 'Kids', fonte: 'fisico' | 'saldo') => {
     const comp = produtos.filter(p => p.tipo_cesta.includes(tipo));
     if (comp.length === 0) return 0;
 
@@ -102,7 +107,6 @@ export default function EstoquePage() {
       let valor = 0;
       if (stock) {
         if (fonte === 'fisico') valor = Number(stock.quantidade_estoque_kg);
-        else if (fonte === 'reservado') valor = Number(stock.quantidade_reservada_kg);
         else valor = Number(stock.saldo_kg);
       }
       const possivel = item.quantidade_kg > 0 ? Math.floor(valor / item.quantidade_kg) : Infinity;
@@ -111,8 +115,14 @@ export default function EstoquePage() {
     return (minCestas === Infinity || minCestas < 0) ? 0 : minCestas;
   };
 
+  const countCestasReservadas = (tipo: 'Adulto' | 'Kids') => {
+    // Normaliza para comparar com o tipo no SaidaRow ('ADULTO' | 'KIDS')
+    const tipoNormalizado = tipo.toUpperCase();
+    return saidas.filter(s => s.status === 'Pendente' && s.tipo.toUpperCase() === tipoNormalizado).length;
+  };
+
   const cestasFisico = { adulto: getCestasPossiveis('Adulto', 'fisico'), kids: getCestasPossiveis('Kids', 'fisico') };
-  const cestasReservado = { adulto: getCestasPossiveis('Adulto', 'reservado'), kids: getCestasPossiveis('Kids', 'reservado') };
+  const cestasReservado = { adulto: countCestasReservadas('Adulto'), kids: countCestasReservadas('Kids') };
   const cestasSaldo = { adulto: getCestasPossiveis('Adulto', 'saldo'), kids: getCestasPossiveis('Kids', 'saldo') };
 
   if (loading) {

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, KeyboardEvent, useCallback, Fragment } fro
 import { DoacaoRow } from '@/types/doacao';
 import { ProdutoRow } from '@/types/produto';
 import { CelulaRow } from '@/types/celula';
+import { parseBRDate } from '@/lib/dateUtils';
 
 // ── Tipos internos ───────────────────────────────────────────────────────────
 interface ItemDoacao {
@@ -206,7 +207,7 @@ export default function DoacoesPage() {
 
   // Agrupamento 2: Por Mês (Visão Mensal)
   const doacoesPorMes = Array.from(doacoes.reduce<Map<string, { mesAno: string, totalKg: number, celulas: Map<string, number>, sortKey: number }>>((acc, d) => {
-    const data = d.data_doacao ? new Date(d.data_doacao) : new Date();
+    const data = parseBRDate(d.data_doacao);
     const mesNome = data.toLocaleString('pt-BR', { month: 'long' });
     const mesFormatado = mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
     const ano = data.getFullYear();
@@ -560,7 +561,7 @@ export default function DoacoesPage() {
                             {isExpanded && group.itens.map((item, idx) => (
                               <tr key={`${item.id_doacao}-${idx}`} className="bg-slate-50/50 border-l-4 border-orange-100 animate-in slide-in-from-top-1 duration-200 ml-8">
                                 <td className="px-5 py-2 text-xs text-gray-400 italic pl-20">
-                                  {new Date(item.data_doacao || '').toLocaleDateString('pt-BR')}
+                                  {parseBRDate(item.data_doacao).toLocaleDateString('pt-BR')}
                                 </td>
                                 <td className="px-5 py-2 text-sm text-gray-600 font-medium">{item.nome_produto}</td>
                                 <td className="px-5 py-2 text-sm font-bold text-slate-700 text-right">{item.quantidade_kg.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg</td>

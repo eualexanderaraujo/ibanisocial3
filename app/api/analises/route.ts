@@ -4,35 +4,16 @@ import { getDoacoes } from '@/lib/doacoesSheets';
 import { getEstoque } from '@/lib/estoqueSheets';
 import { getProdutos } from '@/lib/produtosSheets';
 import { getSaidasRows } from '@/lib/saidasSheets';
+import { parseBRDate } from '@/lib/dateUtils';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getIso(dateStr: string): string {
   if (!dateStr) return '';
-  const s = dateStr.trim();
-  
-  // 1. Já é ISO (contém T)
-  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s;
-  
-  // 2. Formato YYYY-MM-DD (com ou sem hora separada por espaço)
-  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) {
-    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}T00:00:00.000Z`;
-  }
-
-  // 3. Formato BR: DD/MM/YYYY ...
-  const brMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (brMatch) {
-    const day = brMatch[1].padStart(2, '0');
-    const month = brMatch[2].padStart(2, '0');
-    const year = brMatch[3];
-    return `${year}-${month}-${day}T00:00:00.000Z`;
-  }
-
-  // 4. Tenta parse nativo
-  const d = new Date(s);
+  const d = parseBRDate(dateStr);
   return isNaN(d.getTime()) ? '' : d.toISOString();
 }
+
 
 function parseSafeNumber(val: any): number {
   if (typeof val === 'number') return val;

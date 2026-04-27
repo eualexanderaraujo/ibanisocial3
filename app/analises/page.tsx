@@ -124,7 +124,7 @@ export default function AnalisesPage() {
       <div className="bg-white rounded-2xl p-8 text-center max-w-sm shadow-xl">
         <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-3" />
         <p className="text-gray-700 font-semibold">{error || 'Sem dados'}</p>
-        <button onClick={fetchData} className="mt-4 px-6 py-2 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600">Tentar novamente</button>
+        <button onClick={() => fetchData()} className="mt-4 px-6 py-2 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600">Tentar novamente</button>
       </div>
     </div>
   );

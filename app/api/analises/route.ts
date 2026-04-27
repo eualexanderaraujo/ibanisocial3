@@ -156,14 +156,13 @@ export async function GET() {
     ]);
 
     // All unique redes present in doacoes - Clean up names/numbers
-    const recognizedRedes = ['AZUL', 'VERDE', 'VERMELHA', 'AMARELA', 'LARANJA', 'ROXA', 'BRANCA', 'PRETA', 'Dourada'];
+    const recognizedRedes = ['AZUL', 'VERDE', 'VERMELHA', 'AMARELA', 'LARANJA', 'ROXA', 'BRANCA', 'PRETA', 'DOURADA'];
     const normalizeRede = (r: string) => {
       const s = String(r || '').trim().toUpperCase();
       if (recognizedRedes.includes(s)) return s;
-      if (!s || s === 'NÃO' || s === 'SIM') return 'Sem rede';
-      // If it has numbers or is too long, it's probably not a rede
-      if (/\d/.test(s) || s.length > 20) return 'Outros';
-      return s;
+      if (!s || s === 'NÃO' || s === 'SIM' || s === 'N/A') return 'Sem rede';
+      // Se não está na lista oficial, agrupamos como Outros para não poluir o gráfico
+      return 'Outros';
     };
 
     const redesSet = new Set(doacoes.map(d => normalizeRede(d.rede)));
@@ -222,7 +221,7 @@ export async function GET() {
       .slice(-12)
       .map(([key, count]) => ({ periodo: monthLabel(key), count }));
 
-    const pedidosPorRede = countBy(pedidos, p => p.rede ?? '');
+    const pedidosPorRede = countBy(pedidos, p => normalizeRede(p.rede ?? ''));
     const prioridadeCounts = countBy(pedidos, p => p.prioridade_label ?? 'Baixa');
     const statusCounts = countBy(pedidos, p => p.status ?? 'novo');
 

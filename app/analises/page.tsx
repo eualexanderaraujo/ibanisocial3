@@ -500,9 +500,10 @@ export default function AnalisesPage() {
                 <YAxis type="category" dataKey="label" tick={{ fontSize: 11 }} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="count" name="Pedidos" radius={[0, 6, 6, 0]}>
-                  {pedidos.pedidosPorRede.map((_, i) => (
-                    <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
-                  ))}
+                  {pedidos.pedidosPorRede.map((entry, i) => {
+                    const color = REDE_COLORS[entry.label.toUpperCase()] || PALETTE[i % PALETTE.length];
+                    return <Cell key={i} fill={color} />;
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

@@ -56,12 +56,11 @@ Sistema de gestão social para a Igreja Batista Atitude, integrando controle de 
 ---
 
 ## 📝 Histórico de Mudanças Importantes (Últimas)
-- **Painel de Análises & Métricas Temporais**: Layout remodelado com gráficos interativos, incluindo Donut Chart para comparação de doações por Rede e Line Chart histórico usando a nova coluna `Data_doacao` injetada em tempo real nos forms de doação.
-- **Edição Rápida de Estoque (Inline)**: Implementada a edição fluida de quantidades físicas diretamente da tabela "Estoque", atualizando o Google Sheets em tempo real, recalculando o `saldo_kg` imediatamente.
-- **Sistema de Reserva de Estoque**: Implementação de `quantidade_solicitada_kg` e `saldo_kg` para controle preventivo de disponibilidade.
-- **Automação de Lote**: Pedidos agora reservam automaticamente todos os itens da cesta baseado na configuração dos produtos.
-- **Remoção de ID Técnico**: Migração de `id_produto` para `nome_produto` em todo o ecossistema (Estoque/Doações/API).
-- **Fluxo Automatizado**: Implementação da função `incrementarEstoquePorNome` para sincronizar doações e saldo de estoque.
+- **Refatoração do Parsing de Datas**: Implementação da função `parseBRDate` robusta em `lib/dateUtils.ts` para lidar com o formato brasileiro (`DD/MM/YYYY`) vindo do Google Sheets, eliminando erros de interpretação de meses (ex: Abril interpretado como Dezembro) e falhas de "Invalid Date".
+- **Unificação de Lógica de Datas**: Integração do novo parsing em `app/doacoes/page.tsx` (agrupamento e exibição) e `app/api/analises/route.ts`, garantindo consistência total entre o histórico e os gráficos.
+- **Aprimoramento de UI nas Análises**: Padronização de cores por Rede (ex: Rede Vermelha = Cor Vermelha), remoção de casas decimais em KPIs críticos e conversão de gráficos de pizza para Donut.
+- **Auditoria de Integridade**: Auditoria realizada via scripts de monitoramento confirmando que a integridade dos dados no Sheets estava preservada, sendo as anomalias apenas erros de renderização no frontend.
+- **Deploy via CLI**: Utilização do Vercel CLI para deploy manual forçado, garantindo a aplicação imediata das correções em produção.
 
 ---
-*Última atualização: 25/04/2026*
+*Última atualização: 27/04/2026*

@@ -49,6 +49,19 @@ interface AnalisesData {
 const PALETTE = ['#f97316','#3b82f6','#22c55e','#a855f7','#eab308','#ef4444','#14b8a6','#ec4899','#64748b','#f59e0b'];
 const PRIORIDADE_COLORS: Record<string, string> = { Critica: '#dc2626', Alta: '#f97316', Media: '#ca8a04', Baixa: '#2563eb' };
 
+const REDE_COLORS: Record<string, string> = {
+  'VERMELHA': '#ef4444',
+  'AZUL': '#3b82f6',
+  'VERDE': '#22c55e',
+  'AMARELA': '#eab308',
+  'LARANJA': '#f97316',
+  'BRANCA': '#cbd5e1', // Usando um cinza claro para o branco para visibilidade
+  'ROXA': '#a855f7',
+  'ROSA': '#ec4899',
+  'PRETA': '#1e293b',
+  'MARROM': '#78350f'
+};
+
 const KPI = ({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string }) => (
   <div className={`bg-white rounded-2xl border border-gray-200 shadow-md p-5 flex items-center gap-4`}>
     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color} shrink-0`}>{icon}</div>
@@ -278,20 +291,22 @@ export default function AnalisesPage() {
                     nameKey="label" 
                     cx="50%" 
                     cy="50%" 
+                    innerRadius={60}
                     outerRadius={90} 
                     labelLine={false}
                     label={({ cx, x, y, name, percent, value }) => (
                       <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11}>
                         <tspan x={x} dy="-0.5em" fontWeight="bold">{name} {(percent * 100).toFixed(0)}%</tspan>
-                        <tspan x={x} dy="1.2em" fill="#f97316">{value} kg</tspan>
+                        <tspan x={x} dy="1.2em" fill="#f97316">{Math.round(value)} kg</tspan>
                       </text>
                     )}
                   >
-                    {doacoes.kgPorRede.map((_, i) => (
-                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
-                    ))}
+                    {doacoes.kgPorRede.map((entry, i) => {
+                      const color = REDE_COLORS[entry.label.toUpperCase()] || PALETTE[i % PALETTE.length];
+                      return <Cell key={i} fill={color} />;
+                    })}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={(value: number) => [`${Math.round(value)} kg`, 'Total']} />
                 </PieChart>
               </ResponsiveContainer>
             </Section>
@@ -406,7 +421,22 @@ export default function AnalisesPage() {
           <Section title="Tipo de Cesta" icon={<Package className="w-5 h-5" />}>
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
-                <Pie data={pedidos.tipoCesta} dataKey="count" nameKey="label" cx="50%" cy="50%" innerRadius={50} outerRadius={90}>
+                <Pie 
+                  data={pedidos.tipoCesta} 
+                  dataKey="count" 
+                  nameKey="label" 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius={50} 
+                  outerRadius={90}
+                  labelLine={false}
+                  label={({ cx, x, y, name, percent, value }) => (
+                    <text x={x} y={y} fill="#475569" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={10}>
+                      <tspan x={x} dy="-0.5em" fontWeight="bold">{name}</tspan>
+                      <tspan x={x} dy="1.2em" fill="#3b82f6">{value} ({Math.round(percent * 100)}%)</tspan>
+                    </text>
+                  )}
+                >
                   {pedidos.tipoCesta.map((_, i) => (
                     <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                   ))}
